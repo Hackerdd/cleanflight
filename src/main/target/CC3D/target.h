@@ -108,8 +108,8 @@
 #define RSSI_ADC_CHANNEL            ADC_Channel_1
 
 #define GPS
-#define LED_STRIP
-#define LED_STRIP_TIMER TIM3
+//#define LED_STRIP
+//#define LED_STRIP_TIMER TIM3
 
 #define BLACKBOX
 #define TELEMETRY
@@ -117,6 +117,8 @@
 #define SONAR
 #define USE_SERVOS
 #define USE_CLI
+
+#define SKIP_CLI_COMMAND_HELP
 
 #define SPEKTRUM_BIND
 // USART3, PB11 (Flexport)
