@@ -224,6 +224,11 @@ void onNewGPSData(int32_t newLat, int32_t newLon, int32_t newAlt)
                 posEstimator.gps.vel.V.Y = (posEstimator.gps.vel.V.Y + (gpsScaleLonDown * DISTANCE_BETWEEN_TWO_LONGITUDE_POINTS_AT_EQUATOR * (newLon - previousLon) / dT)) / 2.0f;
                 posEstimator.gps.vel.V.Z = (posEstimator.gps.vel.V.Z + (newAlt - previousAlt) / dT) / 2.0f;
 
+                NAV_BLACKBOX_DEBUG(0, lrintf(posEstimator.gps.pos.V.X));
+                NAV_BLACKBOX_DEBUG(1, lrintf(posEstimator.gps.pos.V.Y));
+                NAV_BLACKBOX_DEBUG(2, lrintf(posEstimator.gps.vel.V.X));
+                NAV_BLACKBOX_DEBUG(3, lrintf(posEstimator.gps.vel.V.Y));
+
                 /* FIXME: use HDOP/VDOP */
                 posEstimator.gps.eph = INAV_GPS_EPH;
                 posEstimator.gps.epv = INAV_GPS_EPV;
