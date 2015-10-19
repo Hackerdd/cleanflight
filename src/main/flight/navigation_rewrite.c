@@ -786,7 +786,7 @@ static navigationMode_t selectNavModeFromBoxModeInput(void)
  *-----------------------------------------------------------*/
 bool navigationRequiresThrottleTiltCompensation(void)
 {
-    return !STATE(FIXED_WING) && posControl.navConfig->flags.throttle_tilt_comp;
+    return !STATE(FIXED_WING) && navShouldApplyAltHold() && posControl.navConfig->flags.throttle_tilt_comp;
 }
 
 /*-----------------------------------------------------------
