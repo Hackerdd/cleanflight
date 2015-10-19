@@ -835,4 +835,3 @@ void pidSetController(pidControllerType_e type)
             pid_controller = pidHarakiri;
     }
 }
-
