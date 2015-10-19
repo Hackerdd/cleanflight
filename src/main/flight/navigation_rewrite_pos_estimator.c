@@ -369,8 +369,8 @@ static void updateEstimatedTopic(uint32_t currentTime)
     float dt = US2S(currentTime - posEstimator.est.lastUpdateTime);
     posEstimator.est.lastUpdateTime = currentTime;
 
-    /* In absence of accelerometer we can't estimate anything */
-    if (!sensors(SENSOR_ACC)) {
+    /* If IMU is not ready we can't estimate anything */
+    if (!isImuReady()) {
         posEstimator.est.eph = posControl.navConfig->inav.max_eph_epv + 0.001f;
         posEstimator.est.epv = posControl.navConfig->inav.max_eph_epv + 0.001f;
         return;
@@ -601,6 +601,10 @@ static void publishEstimatedTopic(uint32_t currentTime)
             posEstimator.history.index = 0;
         }
     }
+
+    debug[0] = posEstimator.imu.accelNEU.V.X;
+    debug[1] = posEstimator.est.vel.V.X;
+    debug[2] = posEstimator.est.pos.V.X;
 }
 
 /**
@@ -609,6 +613,8 @@ static void publishEstimatedTopic(uint32_t currentTime)
  */
 void initializePositionEstimator(void)
 {
+    int axis;
+
     posEstimator.est.eph = posControl.navConfig->inav.max_eph_epv + 0.001f;
     posEstimator.est.epv = posControl.navConfig->inav.max_eph_epv + 0.001f;
 
@@ -618,9 +624,11 @@ void initializePositionEstimator(void)
 
     posEstimator.history.index = 0;
 
-    posEstimator.imu.accelBias.V.X = 0;
-    posEstimator.imu.accelBias.V.Y = 0;
-    posEstimator.imu.accelBias.V.Z = 0;
+    for (axis = 0; axis < 3; axis++) {
+        posEstimator.imu.accelBias.A[axis] = 0;
+        posEstimator.est.pos.A[axis] = 0;
+        posEstimator.est.vel.A[axis] = 0;
+    }
 
     memset(&posEstimator.history.pos[0], 0, sizeof(posEstimator.history.pos));
     memset(&posEstimator.history.vel[0], 0, sizeof(posEstimator.history.vel));

@@ -389,6 +389,11 @@ void imuUpdate(rollAndPitchTrims_t *accelerometerTrims)
     }
 }
 
+bool isImuReady(void)
+{
+    return sensors(SENSOR_ACC) && isGyroCalibrationComplete();
+}
+
 float calculateCosTiltAngle(void)
 {
     return rMat[2][2];

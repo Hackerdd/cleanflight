@@ -68,7 +68,7 @@ static void updateHoverThrottle(void)
     }
 
     // FIXME: Make us of this after verification that it works
-    NAV_BLACKBOX_DEBUG(0, hoverThrottle);
+    //NAV_BLACKBOX_DEBUG(0, hoverThrottle);
 }
 
 static void updateAltitudeTargetFromRCInput_MC(uint32_t deltaMicros)

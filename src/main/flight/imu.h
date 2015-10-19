@@ -56,6 +56,7 @@ void calculateEstimatedAltitude(uint32_t currentTime);
 void imuUpdate(rollAndPitchTrims_t *accelerometerTrims);
 float calculateThrottleTiltCompensationFactor(uint8_t throttleTiltCompensationStrength);
 float calculateCosTiltAngle(void);
+bool isImuReady(void);
 
 void imuTransformVectorBodyToEarth(t_fp_vector * v);
 void imuTransformVectorEarthToBody(t_fp_vector * v);
