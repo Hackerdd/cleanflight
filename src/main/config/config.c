@@ -235,8 +235,8 @@ void resetNavConfig(navConfig_t * navConfig)
     navConfig->inav.w_xy_gps_p = 1.0f;
     navConfig->inav.w_xy_gps_v = 2.0f;
 
-    navConfig->inav.w_xy_dr_p = 0.05f;
-    navConfig->inav.w_xy_dr_v = 0.05f;
+    navConfig->inav.w_xy_dr_p = 0.25f;
+    navConfig->inav.w_xy_dr_v = 0.25f;
 
     navConfig->inav.w_z_res_v = 0.5f;
     navConfig->inav.w_xy_res_v = 0.5f;
@@ -249,7 +249,6 @@ void resetNavConfig(navConfig_t * navConfig)
 
     // General navigation parameters
     navConfig->waypoint_radius = 300;
-    navConfig->pterm_cut_hz = 20;
     navConfig->dterm_cut_hz = 15;
     navConfig->max_speed = 250;
     navConfig->max_manual_speed = 500;

@@ -398,7 +398,6 @@ const clivalue_t valueTable[] = {
     { "nav_throttle_tilt_comp",     VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.flags.throttle_tilt_comp, 0, 1 },
     { "nav_lock_until_takeoff",     VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.flags.lock_nav_until_takeoff, 0, 1 },
     { "nav_user_control_mode",      VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.flags.user_control_mode, 0, 1 },
-    { "nav_pterm_cut_hz",           VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.pterm_cut_hz, 0, 100 },
     { "nav_dterm_cut_hz",           VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.dterm_cut_hz, 0, 100 },
     { "nav_wp_radius",              VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.waypoint_radius, 0, 2000 },
     { "nav_max_speed",              VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.max_speed, 10, 2000 },

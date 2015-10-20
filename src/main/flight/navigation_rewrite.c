@@ -89,12 +89,9 @@ float navApplyFilter(float input, float fCut, float dT, float * state)
 /*-----------------------------------------------------------
  * Float point PID-controller implementation
  *-----------------------------------------------------------*/
-float navPidGetP(float error, float dt, pidController_t *pid)
+float navPidGetP(float error, pidController_t *pid)
 {
     float newPterm = error * pid->param.kP;
-
-    if (posControl.navConfig->pterm_cut_hz)
-        newPterm = navApplyFilter(newPterm, posControl.navConfig->pterm_cut_hz, dt, &pid->pterm_filter_state);
 
 #if defined(NAV_BLACKBOX)
     pid->lastP = newPterm;
@@ -145,7 +142,7 @@ float navPidGetD(float error, float dt, pidController_t *pid)
 
 float navPidGetPID(float error, float dt, pidController_t *pid, bool onlyShrinkI)
 {
-    return navPidGetP(error, dt, pid) + navPidGetI(error, dt, pid, onlyShrinkI) + navPidGetD(error, dt, pid);
+    return navPidGetP(error, pid) + navPidGetI(error, dt, pid, onlyShrinkI) + navPidGetD(error, dt, pid);
 }
 
 void navPidReset(pidController_t *pid)

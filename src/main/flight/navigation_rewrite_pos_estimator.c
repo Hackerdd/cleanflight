@@ -338,25 +338,32 @@ static void updateSonarTopic(uint32_t currentTime)
  */
 static void updateIMUTopic(uint32_t currentTime)
 {
-    t_fp_vector accelBF;
+    if (!isImuReady()) {
+        posEstimator.imu.accelNEU.V.X = 0;
+        posEstimator.imu.accelNEU.V.Y = 0;
+        posEstimator.imu.accelNEU.V.Z = 0;
+    }
+    else {
+        t_fp_vector accelBF;
 
-    /* Read acceleration data in body frame */
-    accelBF.V.X = imuAccelInBodyFrame.V.X;
-    accelBF.V.Y = imuAccelInBodyFrame.V.Y;
-    accelBF.V.Z = imuAccelInBodyFrame.V.Z;
+        /* Read acceleration data in body frame */
+        accelBF.V.X = imuAccelInBodyFrame.V.X;
+        accelBF.V.Y = imuAccelInBodyFrame.V.Y;
+        accelBF.V.Z = imuAccelInBodyFrame.V.Z;
 
-    /* Correct accelerometer bias */
-    accelBF.V.X -= posEstimator.imu.accelBias.V.X;
-    accelBF.V.Y -= posEstimator.imu.accelBias.V.Y;
-    accelBF.V.Z -= posEstimator.imu.accelBias.V.Z;
+        /* Correct accelerometer bias */
+        accelBF.V.X -= posEstimator.imu.accelBias.V.X;
+        accelBF.V.Y -= posEstimator.imu.accelBias.V.Y;
+        accelBF.V.Z -= posEstimator.imu.accelBias.V.Z;
 
-    /* Rotate vector to Earth frame - from Forward-Right-Down to North-East-Up*/
-    imuTransformVectorBodyToEarth(&accelBF);
+        /* Rotate vector to Earth frame - from Forward-Right-Down to North-East-Up*/
+        imuTransformVectorBodyToEarth(&accelBF);
 
-    /* Read acceleration data in NEU frame from IMU */
-    posEstimator.imu.accelNEU.V.X = accelBF.V.X;
-    posEstimator.imu.accelNEU.V.Y = accelBF.V.Y;
-    posEstimator.imu.accelNEU.V.Z = accelBF.V.Z - GRAVITY_CMSS;
+        /* Read acceleration data in NEU frame from IMU */
+        posEstimator.imu.accelNEU.V.X = accelBF.V.X;
+        posEstimator.imu.accelNEU.V.Y = accelBF.V.Y;
+        posEstimator.imu.accelNEU.V.Z = accelBF.V.Z - GRAVITY_CMSS;
+    }
 }
 
 /**
@@ -601,10 +608,6 @@ static void publishEstimatedTopic(uint32_t currentTime)
             posEstimator.history.index = 0;
         }
     }
-
-    debug[0] = posEstimator.imu.accelNEU.V.X;
-    debug[1] = posEstimator.est.vel.V.X;
-    debug[2] = posEstimator.est.pos.V.X;
 }
 
 /**

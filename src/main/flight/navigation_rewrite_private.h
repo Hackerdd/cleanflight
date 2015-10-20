@@ -225,7 +225,7 @@ bool updateTimer(navigationTimer_t * tim, uint32_t interval, uint32_t currentTim
 
 /* Internally used functions */
 float navApplyFilter(float input, float fCut, float dT, float * state);
-float navPidGetP(float error, float dt, pidController_t *pid);
+float navPidGetP(float error, pidController_t *pid);
 float navPidGetI(float error, float dt, pidController_t *pid, bool onlyShrinkI);
 float navPidGetD(float error, float dt, pidController_t *pid);
 float navPidGetPID(float error, float dt, pidController_t *pid, bool onlyShrinkI);
