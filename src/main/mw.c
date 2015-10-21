@@ -827,11 +827,18 @@ void loop(void)
 
         // Apply throttle tilt compensation
         if (!STATE(FIXED_WING)) {
+            int16_t thrTiltCompStrength = 0;
+
             if (navigationRequiresThrottleTiltCompensation()) {
-                rcCommand[THROTTLE] *= calculateThrottleTiltCompensationFactor(100);
+                thrTiltCompStrength = 100;
             }
             else if (currentProfile->throttle_tilt_compensation_strength && (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE))) {
-                rcCommand[THROTTLE] *= calculateThrottleTiltCompensationFactor(currentProfile->throttle_tilt_compensation_strength);
+                thrTiltCompStrength = currentProfile->throttle_tilt_compensation_strength;
+            }
+
+            if (thrTiltCompStrength) {
+                rcCommand[THROTTLE] = masterConfig.escAndServoConfig.minthrottle
+                                       + (rcCommand[THROTTLE] - masterConfig.escAndServoConfig.minthrottle) * calculateThrottleTiltCompensationFactor(thrTiltCompStrength);
             }
         }
 
