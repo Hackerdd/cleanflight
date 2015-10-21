@@ -91,8 +91,7 @@ typedef struct navConfig_s {
         float w_xy_gps_p;   // Weight (cutoff frequency) for GPS position measurements
         float w_xy_gps_v;   // Weight (cutoff frequency) for GPS velocity measurements
 
-        float w_xy_dr_p;    // When we are using dead reckoning, loosely assume that we don't move and stay at the same place
-        float w_xy_dr_v;
+        float w_xy_dr_v;    // When we are using dead reckoning, loosely assume that we don't move and stay at the same place
 
         float w_z_res_v;    // When velocity sources lost slowly decrease estimated velocity with this weight
         float w_xy_res_v;
@@ -136,7 +135,6 @@ typedef struct {
 } navWaypointPosition_t;
 
 #if defined(NAV)
-
 void navigationUsePIDs(pidProfile_t *pidProfile);
 void navigationUseConfig(navConfig_t *navConfigToUse);
 void navigationUseRcControlsConfig(rcControlsConfig_t *initialRcControlsConfig);

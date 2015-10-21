@@ -413,13 +413,6 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
     velError = posControl.desiredState.vel.V.Y - posControl.actualState.vel.V.Y;
     newAccelY = navPidGetPID(velError, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
 
-#if defined(NAV_BLACKBOX)
-    // NAV_BLACKBOX_DEBUG(0, lrintf(posControl.pids.vel[X].lastP));
-    // NAV_BLACKBOX_DEBUG(1, lrintf(posControl.pids.vel[X].lastI));
-    // NAV_BLACKBOX_DEBUG(2, lrintf(posControl.pids.vel[Y].lastP));
-    // NAV_BLACKBOX_DEBUG(3, lrintf(posControl.pids.vel[Y].lastI));
-#endif
-
     // Check if required acceleration exceeds maximum allowed accel
     float newAccelTotal = sqrtf(sq(newAccelX) + sq(newAccelY));
 

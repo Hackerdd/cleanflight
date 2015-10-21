@@ -393,7 +393,6 @@ const clivalue_t valueTable[] = {
     { "inav_w_z_gps_v",             VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_z_gps_v, 0, 10 },
     { "inav_w_xy_gps_p",            VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_xy_gps_p, 0, 10 },
     { "inav_w_xy_gps_v",            VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_xy_gps_v, 0, 10 },
-    { "inav_w_xy_dr_p",             VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_xy_dr_p, 0, 10 },
     { "inav_w_xy_dr_v",             VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_xy_dr_v, 0, 10 },
     { "inav_w_z_res_v",             VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_z_res_v, 0, 10 },
     { "inav_w_xy_res_v",            VAR_FLOAT  | MASTER_VALUE, &masterConfig.navConfig.inav.w_xy_res_v, 0, 10 },

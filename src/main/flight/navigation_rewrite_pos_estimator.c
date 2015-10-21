@@ -551,9 +551,6 @@ static void updateEstimatedTopic(uint32_t currentTime)
 
         /* Use dead reckoning */
         if (useDeadReckoning) {
-            //inavFilterCorrectPos(X, dt, 0.0f - posEstimator.est.pos.V.X, posControl.navConfig->inav.w_xy_dr_p);
-            //inavFilterCorrectPos(Y, dt, 0.0f - posEstimator.est.pos.V.Y, posControl.navConfig->inav.w_xy_dr_p);
-
             inavFilterCorrectVel(X, dt, 0.0f - posEstimator.est.vel.V.X, posControl.navConfig->inav.w_xy_dr_v);
             inavFilterCorrectVel(Y, dt, 0.0f - posEstimator.est.vel.V.Y, posControl.navConfig->inav.w_xy_dr_v);
 
@@ -637,26 +634,6 @@ void initializePositionEstimator(void)
     memset(&posEstimator.history.vel[0], 0, sizeof(posEstimator.history.vel));
 }
 
-/*
-static void fakeGPS(uint32_t currentTime)
-{
-    static navigationTimer_t fakeGpsTimer;
-
-    if (currentTime < 5000000)
-        return;
-
-    persistentFlagSet(FLAG_MAG_CALIBRATION_DONE);
-    sensorsSet(SENSOR_GPS);
-    ENABLE_STATE(GPS_FIX);
-    GPS_numSat = 6;
-
-    if (updateTimer(&fakeGpsTimer, HZ2US(10), currentTime)) {
-        // sensorsSet(SENSOR_MAG);
-        onNewGPSData(505498090, 1370165690, 0);
-    }
-}
-*/
-
 /**
  * Update estimator
  *  Update rate: loop rate (>100Hz)
@@ -671,8 +648,6 @@ void updatePositionEstimator(void)
     }
 
     uint32_t currentTime = micros();
-
-    //fakeGPS(currentTime);
 
     /* Periodic sensor updates */
 #if defined(BARO)
