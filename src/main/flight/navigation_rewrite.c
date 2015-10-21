@@ -118,6 +118,42 @@ float navPidApply(float error, float dt, pidController_t *pid, bool onlyShrinkI)
     return newProportional + newIntegrator + newDerivative;
 }
 
+float navPidApply2(float error, float dt, pidController_t *pid, float outMin, float outMax)
+{
+    float newProportional, newDerivative;
+
+    newProportional = error * pid->param.kP;
+
+    newDerivative = (error - pid->last_error) / dt;
+    pid->last_error = error;
+    if (posControl.navConfig->dterm_cut_hz)
+        newDerivative = pid->param.kD * navApplyFilter(newDerivative, posControl.navConfig->dterm_cut_hz, dt, &pid->dterm_filter_state);
+    else
+        newDerivative = pid->param.kD * newDerivative;
+
+    float outVal = newProportional + pid->integrator + newDerivative;
+    float outValConstrained = constrainf(outVal, outMin, outMax);
+
+    // Update integral
+    if (pid->param.kI < 1e-6f) {
+        pid->integrator = 0;
+    }
+    else {
+        float Ti = pid->param.kP / pid->param.kI;
+        float Td = pid->param.kD / pid->param.kP;
+        float kT = 2.0f / (Ti + Td);
+        pid->integrator += (error * pid->param.kI * dt) + ((outValConstrained - outVal) * kT * dt);
+    }
+
+#if defined(NAV_BLACKBOX)
+    pid->lastP = newProportional;
+    pid->lastI = pid->integrator;
+    pid->lastD = newDerivative;
+#endif
+
+    return outValConstrained;
+}
+
 void navPidReset(pidController_t *pid)
 {
     pid->integrator = 0;
