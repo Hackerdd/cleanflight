@@ -121,7 +121,7 @@ static void updateAltitudeThrottleController_MC(uint32_t deltaMicros)
 {
     static float throttleFilterState;
     float accError = posControl.desiredState.acc.V.Z - posControl.actualState.acc.V.Z;
-    posControl.rcAdjustment[THROTTLE] = navPidGetPID(accError, US2S(deltaMicros), &posControl.pids.accz, false);
+    posControl.rcAdjustment[THROTTLE] = navPidApply(accError, US2S(deltaMicros), &posControl.pids.accz, false);
     posControl.rcAdjustment[THROTTLE] = navApplyFilter(posControl.rcAdjustment[THROTTLE], NAV_THROTTLE_CUTOFF_FREQENCY_HZ, US2S(deltaMicros), &throttleFilterState);
     posControl.rcAdjustment[THROTTLE] = constrain(posControl.rcAdjustment[THROTTLE], -500, 500);
 }
@@ -407,11 +407,11 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
 
     // Calculate acceleration target on X-axis
     velError = posControl.desiredState.vel.V.X - posControl.actualState.vel.V.X;
-    newAccelX = navPidGetPID(velError, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitingXY);
+    newAccelX = navPidApply(velError, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitingXY);
 
     // Calculate acceleration target on Y-axis
     velError = posControl.desiredState.vel.V.Y - posControl.actualState.vel.V.Y;
-    newAccelY = navPidGetPID(velError, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
+    newAccelY = navPidApply(velError, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
 
     // Check if required acceleration exceeds maximum allowed accel
     float newAccelTotal = sqrtf(sq(newAccelX) + sq(newAccelY));

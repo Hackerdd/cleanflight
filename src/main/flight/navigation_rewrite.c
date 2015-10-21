@@ -89,60 +89,33 @@ float navApplyFilter(float input, float fCut, float dT, float * state)
 /*-----------------------------------------------------------
  * Float point PID-controller implementation
  *-----------------------------------------------------------*/
-float navPidGetP(float error, pidController_t *pid)
+float navPidApply(float error, float dt, pidController_t *pid, bool onlyShrinkI)
 {
-    float newPterm = error * pid->param.kP;
+    float newProportional, newIntegrator, newDerivative;
 
-#if defined(NAV_BLACKBOX)
-    pid->lastP = newPterm;
-#endif
+    newProportional = error * pid->param.kP;
 
-    return newPterm;
-}
-
-float navPidGetI(float error, float dt, pidController_t *pid, bool onlyShrinkI)
-{
-    float newIntegrator = pid->integrator + ((float)error * pid->param.kI) * dt;
-
-    if (onlyShrinkI) {
-        // Only allow I to shrink
-        if (fabsf(newIntegrator) < fabsf(pid->integrator)) {
-            pid->integrator = newIntegrator;
-        }
+    newIntegrator = pid->integrator + ((float)error * pid->param.kI) * dt;
+    if (onlyShrinkI && (fabsf(newIntegrator) > fabsf(pid->integrator))) {
+        newIntegrator = pid->integrator;    // Keep old integrator if allowed only to shrink and violates the condition
     }
-    else {
-        pid->integrator = newIntegrator;
-    }
+    newIntegrator = constrainf(newIntegrator, -pid->param.Imax, pid->param.Imax);
+    pid->integrator = newIntegrator;
 
-    pid->integrator = constrainf(pid->integrator, -pid->param.Imax, pid->param.Imax);
-
-#if defined(NAV_BLACKBOX)
-    pid->lastI = pid->integrator;
-#endif
-
-    return pid->integrator;
-}
-
-float navPidGetD(float error, float dt, pidController_t *pid)
-{
-    float newDerivative = (error - pid->last_error) / dt;
+    newDerivative = (error - pid->last_error) / dt;
     pid->last_error = error;
-
     if (posControl.navConfig->dterm_cut_hz)
         newDerivative = pid->param.kD * navApplyFilter(newDerivative, posControl.navConfig->dterm_cut_hz, dt, &pid->dterm_filter_state);
     else
         newDerivative = pid->param.kD * newDerivative;
 
 #if defined(NAV_BLACKBOX)
+    pid->lastP = newProportional;
+    pid->lastI = newIntegrator;
     pid->lastD = newDerivative;
 #endif
 
-    return newDerivative;
-}
-
-float navPidGetPID(float error, float dt, pidController_t *pid, bool onlyShrinkI)
-{
-    return navPidGetP(error, pid) + navPidGetI(error, dt, pid, onlyShrinkI) + navPidGetD(error, dt, pid);
+    return newProportional + newIntegrator + newDerivative;
 }
 
 void navPidReset(pidController_t *pid)
