@@ -115,14 +115,20 @@ static bool isRXDataNew;
  *  450-sized, 920kv, 9.4x4.3 props, 3S : 4622rpm = 77Hz
  *  250-sized, 2300kv, 5x4.5 props, 4S : 14139rpm = 235Hz
  */
-static int16_t gyroFIR[3][7];
-static int16_t gyroFIRCoeff_1000[7] = { 12, 23, 40, 51, 52, 40, 38 };   // looptime=1000; group delay 2.5ms; -0.5db = 32Hz ; -1db = 45Hz; -5db = 97Hz; -10db = 132Hz
-static int16_t gyroFIRCoeff_1500[7] = { 4, 12, 34, 58, 72, 56, 22 };    // looptime=1500, group delay 3ms;   -0.5db = 28Hz ; -1db = 38Hz; -5db = 82Hz; -10db = 115Hz
-static int16_t gyroFIRCoeff_2000[7] = { 0, 6, 24, 58, 82, 64, 20 };     // looptime=2000, group delay 4ms;   -0.5db = 21Hz ; -1db = 31Hz; -5db = 71Hz; -10db = 99Hz
-static int16_t gyroFIRCoeff_3000[7] = { 0, 0, 4, 36, 88, 88, 44 };      // looptime=3000, group delay 4.5ms; -0.5db = 18Hz ; -1db = 26Hz; -5db = 57Hz; -10db = 78Hz
-static int16_t gyroFIRCoeff_3500[7] = { 0, 0, 4, 26, 74, 98, 52 };      // looptime=3500, group delay 5ms;   -0.5db = 15Hz ; -1db = 22Hz; -5db = 49Hz; -10db = 69Hz
+static int16_t gyroFIR[3][9];
+static int16_t gyroFIRCoeff_1000[2][9] = { { 0, 0, 12, 23, 40, 51, 52, 40, 38 },    // looptime=1000; group delay 2.5ms; -0.5db = 32Hz ; -1db = 45Hz; -5db = 97Hz; -10db = 132Hz
+                                           { 18, 30, 42, 46, 40, 34, 22, 8, 8} };   // looptime=1000; group delay 3ms;   -0.5db = 18Hz ; -1db = 33Hz; -5db = 81Hz; -10db = 113Hz
+static int16_t gyroFIRCoeff_1500[2][9] = { { 0, 0, 4, 12, 34, 58, 72, 56, 22 },     // looptime=1500, group delay 3ms;   -0.5db = 28Hz ; -1db = 38Hz; -5db = 82Hz; -10db = 115Hz
+                                           { 12, 8, 24, 36, 42, 44, 38, 28, 22} };  // looptime=1500, group delay 5ms;   -0.5db = 16Hz ; -1db = 24Hz; -5db = 52Hz; -10db = 72Hz
+static int16_t gyroFIRCoeff_2000[2][9] = { { 0, 0, 0, 6, 24, 58, 82, 64, 20 },      // looptime=2000, group delay 4ms;   -0.5db = 21Hz ; -1db = 31Hz; -5db = 71Hz; -10db = 99Hz
+                                           { 0, 0, 14, 22, 46, 60, 56, 40, 24} };   // looptime=2000, group delay 5ms;   -0.5db = 20Hz ; -1db = 26Hz; -5db = 52Hz; -10db = 71Hz
+static int16_t gyroFIRCoeff_3000[2][9] = { { 0, 0, 0, 0, 4, 36, 88, 88, 44 },       // looptime=3000, group delay 4.5ms; -0.5db = 18Hz ; -1db = 26Hz; -5db = 57Hz; -10db = 78Hz
+                                           { 0, 0, 0, 14, 32, 64, 72, 54, 28} };    // looptime=3000, group delay 6.5ms; -0.5db = 16Hz ; -1db = 21Hz; -5db = 42Hz; -10db = 57Hz
+static int16_t gyroFIRCoeff_3500[2][9] = { { 0, 0, 0, 0, 4, 26, 74, 98, 52 },       // looptime=3500, group delay 5ms;   -0.5db = 15Hz ; -1db = 22Hz; -5db = 49Hz; -10db = 69Hz
+                                           { 0, 0, 0, 0, 20, 54, 86, 66, 28} };     // looptime=3500, group delay 7ms;   -0.5db = 13Hz ; -1db = 19Hz; -5db = 42Hz; -10db = 58Hz
 
-int16_t * gyroFIRCoeffActive = gyroFIRCoeff_3500;
+
+int16_t * gyroFIRCoeffActive = gyroFIRCoeff_3500[0];
 
 typedef void (*pidControllerFuncPtr)(pidProfile_t *pidProfile, controlRateConfig_t *controlRateConfig,
         uint16_t max_angle_inclination, rollAndPitchTrims_t *angleTrim, rxConfig_t *rxConfig);            // pid controller function prototype
@@ -131,25 +137,30 @@ extern pidControllerFuncPtr pid_controller;
 
 void selectFIRFilterFromLooptime(void)
 {
+    int firIndex = 0;
+
+    if (currentProfile->pidProfile.gyro_soft_filter == 2) 
+        firIndex = 1;
+
     // For looptimes faster than 1249 (and looptime=0) use filter for 1kHz looptime
     if (masterConfig.looptime < 1250) {
-        gyroFIRCoeffActive = gyroFIRCoeff_1000;
+        gyroFIRCoeffActive = gyroFIRCoeff_1000[firIndex];
     }
     // 1250 ... 1749
     else if (masterConfig.looptime < 1750) {
-        gyroFIRCoeffActive = gyroFIRCoeff_1500;
+        gyroFIRCoeffActive = gyroFIRCoeff_1500[firIndex];
     }
     // 1750 ... 2499
     else if (masterConfig.looptime < 2500) {
-        gyroFIRCoeffActive = gyroFIRCoeff_2000;
+        gyroFIRCoeffActive = gyroFIRCoeff_2000[firIndex];
     }
     // 2500 ... 3249
     else if (masterConfig.looptime < 3250) {
-        gyroFIRCoeffActive = gyroFIRCoeff_3000;
+        gyroFIRCoeffActive = gyroFIRCoeff_3000[firIndex];
     }
     // 3250 and over
     else {
-        gyroFIRCoeffActive = gyroFIRCoeff_3500;
+        gyroFIRCoeffActive = gyroFIRCoeff_3500[firIndex];
     }
 }
 
@@ -771,8 +782,8 @@ void loop(void)
         previousTime = currentTime;
 
         // Gyro Low Pass
-        if (currentProfile->pidProfile.gyro_fir_enable) {
-            filterApply7TapFIR(gyroADC, gyroFIR, gyroFIRCoeffActive);
+        if (currentProfile->pidProfile.gyro_soft_filter) {
+            filterApply9TapFIR(gyroADC, gyroFIR, gyroFIRCoeffActive);
         }
 
         if (masterConfig.rxConfig.rcSmoothing) {

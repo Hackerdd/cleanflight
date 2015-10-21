@@ -28,19 +28,19 @@ float filterApplyPt1(float input, filterStatePt1_t* state, uint8_t f_cut) {
 
 // 7 Tap FIR filter as described here:
 // Thanks to Qcopter & BorisB
-void filterApply7TapFIR(int16_t data[3], int16_t state[3][7], int16_t coeff[7])
+void filterApply9TapFIR(int16_t data[3], int16_t state[3][9], int16_t coeff[9])
 {
     int32_t FIRsum;
     int axis, i;
 
     for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         FIRsum = 0;
-        for (i = 0; i <= 5; i++) {
+        for (i = 0; i <= 7; i++) {
             state[axis][i] = state[axis][i + 1];
             FIRsum += state[axis][i] * coeff[i];
         }
-        state[axis][6] = data[axis];
-        FIRsum += state[axis][6] * coeff[6];
+        state[axis][8] = data[axis];
+        FIRsum += state[axis][8] * coeff[8];
         data[axis] = FIRsum / 256;
     }
 }
