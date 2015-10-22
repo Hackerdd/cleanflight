@@ -118,6 +118,9 @@ float navPidApply(float error, float dt, pidController_t *pid, bool onlyShrinkI)
     return newProportional + newIntegrator + newDerivative;
 }
 
+// Implementation of PID with back-calculation I-term anti-windup
+// Control System Design, Lecture Notes for ME 155A by Karl Johan Åström (p.228)
+// http://www.cds.caltech.edu/~murray/courses/cds101/fa02/caltech/astrom-ch6.pdf
 float navPidApply2(float error, float dt, pidController_t *pid, float outMin, float outMax)
 {
     float newProportional, newDerivative;

@@ -53,7 +53,6 @@
 static int16_t altholdInitialThrottle;      // Throttle input when althold was activated
 static float hoverThrottle = 0;
 static int16_t rcCommandAdjustedThrottle;
-static bool accelLimitingXY = false;        // true if acceleration limiting active
 
 static void updateHoverThrottle(void)
 {
@@ -403,20 +402,45 @@ static void updatePositionVelocityController_MC(void)
 
 static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAccelLimit)
 {
-    float velError, newAccelX, newAccelY;
+    float velErrorX, velErrorY, newAccelX, newAccelY;
 
-    // Calculate acceleration target on X-axis
-    velError = posControl.desiredState.vel.V.X - posControl.actualState.vel.V.X;
-    newAccelX = navPidApply(velError, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitingXY);
+    // Calculate velocity error
+    velErrorX = posControl.desiredState.vel.V.X - posControl.actualState.vel.V.X;
+    velErrorY = posControl.desiredState.vel.V.Y - posControl.actualState.vel.V.Y;
 
-    // Calculate acceleration target on Y-axis
-    velError = posControl.desiredState.vel.V.Y - posControl.actualState.vel.V.Y;
-    newAccelY = navPidApply(velError, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
+#if 1
+    // Calculate XY-acceleration limit according to velocity error limit
+    float accelLimitX, accelLimitY;
+    float velErrorMagnitude = sqrtf(sq(velErrorX) + sq(velErrorY));
+    if (velErrorMagnitude > 0.1f) {
+        accelLimitX = maxAccelLimit / velErrorMagnitude * fabsf(velErrorX);
+        accelLimitY = maxAccelLimit / velErrorMagnitude * fabsf(velErrorY);
+    }
+    else {
+        accelLimitX = maxAccelLimit * 1.414213f;
+        accelLimitY = accelLimitX;
+    }
 
-    NAV_BLACKBOX_DEBUG(0, lrintf(posControl.pids.vel[X].lastP));
-    NAV_BLACKBOX_DEBUG(1, lrintf(posControl.pids.vel[X].lastI));
-    NAV_BLACKBOX_DEBUG(2, lrintf(posControl.pids.vel[Y].lastP));
-    NAV_BLACKBOX_DEBUG(3, lrintf(posControl.pids.vel[Y].lastI));
+    // Apply additional jerk limiting of 1700 cm/s^3 (~100 deg/s), almost any copter should be able to achieve this rate
+    // This will assure that we wont't saturate out LEVEL and RATE PID controller
+    float maxAccelChange = US2S(deltaMicros) * 1700.0f;
+    float accelLimitXMin = constrainf(lastAccelTargetX - maxAccelChange, -accelLimitX, +accelLimitX);
+    float accelLimitXMax = constrainf(lastAccelTargetX + maxAccelChange, -accelLimitX, +accelLimitX);
+    float accelLimitYMin = constrainf(lastAccelTargetY - maxAccelChange, -accelLimitY, +accelLimitY);
+    float accelLimitYMax = constrainf(lastAccelTargetY + maxAccelChange, -accelLimitY, +accelLimitY);
+
+    // TODO: Verify if we need jerk limiting after all
+
+    // Apply PID with output limiting and I-term anti-windup
+    // Pre-calculated accelLimit and the logic of navPidApply2 function guarantee that our newAccel won't exceed maxAccelLimit
+    // Thus we don't need to do anything else with calculated acceleration
+    newAccelX = navPidApply2(velErrorX, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitXMin, accelLimitXMax);
+    newAccelY = navPidApply2(velErrorY, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitYMin, accelLimitYMax);
+#else
+    static bool accelLimitingXY = false;
+
+    newAccelX = navPidApply(velErrorX, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitingXY);
+    newAccelY = navPidApply(velErrorY, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
 
     // Check if required acceleration exceeds maximum allowed accel
     float newAccelTotal = sqrtf(sq(newAccelX) + sq(newAccelY));
@@ -431,7 +455,7 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
         accelLimitingXY = false;
     }
 
-    // apply jerk limit of 10 m/s^3
+    // apply jerk limit of 10 m/s^3 (~60 deg/s)
     float maxAccelChange = US2S(deltaMicros) * 1000.0f;
     float accelChangeMagnitude = sqrtf(sq(newAccelX - lastAccelTargetX) + sq(newAccelY - lastAccelTargetY));
 
@@ -439,10 +463,16 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
         newAccelX = lastAccelTargetX + (newAccelX - lastAccelTargetX) * (maxAccelChange / accelChangeMagnitude);
         newAccelY = lastAccelTargetY + (newAccelY - lastAccelTargetY) * (maxAccelChange / accelChangeMagnitude);
     }
+#endif
 
     // Save last acceleration target
     lastAccelTargetX = newAccelX;
     lastAccelTargetY = newAccelY;
+
+    NAV_BLACKBOX_DEBUG(0, lrintf(posControl.pids.vel[X].lastP));
+    NAV_BLACKBOX_DEBUG(1, lrintf(posControl.pids.vel[X].lastI));
+    NAV_BLACKBOX_DEBUG(2, lrintf(posControl.pids.vel[Y].lastP));
+    NAV_BLACKBOX_DEBUG(3, lrintf(posControl.pids.vel[Y].lastI));
 
     // Apply LPF to jerk limited acceleration target
     posControl.desiredState.acc.V.X = navApplyFilter(newAccelX, NAV_ACCEL_CUTOFF_FREQUENCY_HZ, US2S(deltaMicros), &mcPosControllerAccFilterStateX);
