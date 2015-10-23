@@ -59,7 +59,7 @@ void resetFixedWingAltitudeController()
     posControl.rcAdjustment[PITCH] = 0;
 }
 
-static void updateAltitudeTargetFromRCInput_FW(uint32_t deltaMicros)
+static void updateAltitudeTargetFromRCInput_FW(void)
 {
     // In some cases pilot has no control over flight direction
     if (!navCanAdjustAltitudeFromRCInput()) {
@@ -72,7 +72,7 @@ static void updateAltitudeTargetFromRCInput_FW(uint32_t deltaMicros)
     if (rcAdjustment) {
         // set velocity proportional to stick movement
         float rcClimbRate = rcAdjustment * posControl.navConfig->max_manual_climb_rate / (500.0f - posControl.navConfig->alt_hold_deadband);
-        updateAltitudeTargetFromClimbRate(deltaMicros, rcClimbRate);
+        updateAltitudeTargetFromClimbRate(rcClimbRate);
         posControl.flags.isAdjustingAltitude = true;
     }
     else {
@@ -131,10 +131,19 @@ void applyFixedWingAltitudeController(uint32_t currentTime)
         // Update altitude target from RC input or RTL controller
         if (updateTimer(&targetPositionUpdateTimer, HZ2US(POSITION_TARGET_UPDATE_RATE_HZ), currentTime)) {
             if (navShouldApplyAutonomousLandingLogic()) {
-                // TODO
+                // Gradually reduce descent speed depending on actual altitude.
+                if (posControl.actualState.pos.V.Z > (posControl.homePosition.pos.V.Z + 5000)) {
+                    updateAltitudeTargetFromClimbRate(-300.0f);
+                }
+                else if (posControl.actualState.pos.V.Z > (posControl.homePosition.pos.V.Z + 1000)) {
+                    updateAltitudeTargetFromClimbRate(-100.0f);
+                }
+                else {
+                    updateAltitudeTargetFromClimbRate(-50.0f);
+                }
             }
 
-            updateAltitudeTargetFromRCInput_FW(getTimerDeltaMicros(&targetPositionUpdateTimer));
+            updateAltitudeTargetFromRCInput_FW();
         }
 
         // If we have an update on vertical position data - update velocity and accel targets

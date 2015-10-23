@@ -361,10 +361,9 @@ bool isLandingDetected(void)
 /*-----------------------------------------------------------
  * Z-position controller
  *-----------------------------------------------------------*/
-void updateAltitudeTargetFromClimbRate(uint32_t deltaMicros, float climbRate)
+void updateAltitudeTargetFromClimbRate(float climbRate)
 {
-    UNUSED(deltaMicros);
-
+    // FIXME: On FIXED_WING and multicopter this should work in a different way
     // Calculate new altitude target
     posControl.desiredState.pos.V.Z = posControl.actualState.pos.V.Z + (climbRate / posControl.pids.pos[Z].param.kP);
 }
@@ -934,7 +933,7 @@ void navigationUsePIDs(pidProfile_t *initialPidProfile)
                                         (float)posControl.pidProfile->D8[PIDNAVR] / 1000.0f,
                                         500.0);
 
-    navPidInit(&posControl.pids.fw_nav, (float)posControl.pidProfile->P8[PIDALT] / 100.0f,
+    navPidInit(&posControl.pids.fw_alt, (float)posControl.pidProfile->P8[PIDALT] / 100.0f,
                                         (float)posControl.pidProfile->I8[PIDALT] / 100.0f,
                                         (float)posControl.pidProfile->D8[PIDALT] / 1000.0f,
                                         500.0);

@@ -70,7 +70,7 @@ static void updateHoverThrottle(void)
     //NAV_BLACKBOX_DEBUG(0, hoverThrottle);
 }
 
-static void updateAltitudeTargetFromRCInput_MC(uint32_t deltaMicros)
+static void updateAltitudeTargetFromRCInput_MC(void)
 {
     // In some cases pilot has no control over flight direction
     if (!navCanAdjustAltitudeFromRCInput()) {
@@ -82,13 +82,13 @@ static void updateAltitudeTargetFromRCInput_MC(uint32_t deltaMicros)
     if (rcThrottleAdjustment) {
         // set velocity proportional to stick movement
         float rcClimbRate = rcThrottleAdjustment * posControl.navConfig->max_manual_climb_rate / (500.0f - posControl.navConfig->alt_hold_deadband);
-        updateAltitudeTargetFromClimbRate(deltaMicros, rcClimbRate);
+        updateAltitudeTargetFromClimbRate(rcClimbRate);
         posControl.flags.isAdjustingAltitude = true;
     }
     else {
         // Adjusting finished - reset desired position to stay exactly where pilot released the stick
         if (posControl.flags.isAdjustingAltitude) {
-            updateAltitudeTargetFromClimbRate(deltaMicros, 0);
+            updateAltitudeTargetFromClimbRate(0);
         }
         posControl.flags.isAdjustingAltitude = false;
     }
@@ -167,22 +167,20 @@ void applyMulticopterAltitudeController(uint32_t currentTime)
 
     // Update altitude target from RC input or RTL controller
     if (updateTimer(&targetPositionUpdateTimer, HZ2US(POSITION_TARGET_UPDATE_RATE_HZ), currentTime)) {
-        uint32_t deltaMicrosPositionTargetUpdate = getTimerDeltaMicros(&targetPositionUpdateTimer);
-
         if (navShouldApplyAutonomousLandingLogic()) {
             // Gradually reduce descent speed depending on actual altitude.
             if (posControl.actualState.pos.V.Z > (posControl.homePosition.pos.V.Z + 1000)) {
-                updateAltitudeTargetFromClimbRate(deltaMicrosPositionTargetUpdate, -200.0f);
+                updateAltitudeTargetFromClimbRate(-200.0f);
             }
             else if (posControl.actualState.pos.V.Z > (posControl.homePosition.pos.V.Z + 250)) {
-                updateAltitudeTargetFromClimbRate(deltaMicrosPositionTargetUpdate, -100.0f);
+                updateAltitudeTargetFromClimbRate(-100.0f);
             }
             else {
-                updateAltitudeTargetFromClimbRate(deltaMicrosPositionTargetUpdate, -50.0f);
+                updateAltitudeTargetFromClimbRate(-50.0f);
             }
         }
 
-        updateAltitudeTargetFromRCInput_MC(deltaMicrosPositionTargetUpdate);
+        updateAltitudeTargetFromRCInput_MC();
     }
 
     // If we have an update on vertical position data - update velocity and accel targets
