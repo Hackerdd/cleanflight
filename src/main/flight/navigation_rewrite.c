@@ -957,6 +957,17 @@ void navigationUsePIDs(pidProfile_t *initialPidProfile)
                                       (float)posControl.pidProfile->D8[PIDVEL] / 1000.0f,
                                       400.0);
 
+    // Initialize fixed wing PID controllers
+    navPidInit(&posControl.pids.fw_nav, (float)posControl.pidProfile->P8[PIDNAVR] / 100.0f,
+                                        (float)posControl.pidProfile->I8[PIDNAVR] / 100.0f,
+                                        (float)posControl.pidProfile->D8[PIDNAVR] / 1000.0f,
+                                        500.0);
+
+    navPidInit(&posControl.pids.fw_nav, (float)posControl.pidProfile->P8[PIDALT] / 100.0f,
+                                        (float)posControl.pidProfile->I8[PIDALT] / 100.0f,
+                                        (float)posControl.pidProfile->D8[PIDALT] / 1000.0f,
+                                        500.0);
+
     // Heading PID (duplicates maghold)
     navPInit(&posControl.pids.heading, (float)posControl.pidProfile->P8[PIDMAG] / 30.0f);
 }

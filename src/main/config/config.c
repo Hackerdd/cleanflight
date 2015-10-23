@@ -162,9 +162,9 @@ static void resetPidProfile(pidProfile_t *pidProfile)
     pidProfile->P8[PIDPOSR] = 70;   // NAV_VEL_XY_P * 100
     pidProfile->I8[PIDPOSR] = 20;   // NAV_VEL_XY_I * 100
     pidProfile->D8[PIDPOSR] = 0;    // NAV_VEL_XY_D * 1000
-    pidProfile->P8[PIDNAVR] = 0;    // not used
-    pidProfile->I8[PIDNAVR] = 0;    // not used
-    pidProfile->D8[PIDNAVR] = 0;    // not used
+    pidProfile->P8[PIDNAVR] = 14;   // FW_NAV_P * 100
+    pidProfile->I8[PIDNAVR] = 2;    // FW_NAV_I * 100
+    pidProfile->D8[PIDNAVR] = 80;   // FW_NAV_D * 1000
     pidProfile->P8[PIDLEVEL] = 90;
     pidProfile->I8[PIDLEVEL] = 10;
     pidProfile->D8[PIDLEVEL] = 100;
@@ -256,6 +256,7 @@ void resetNavConfig(navConfig_t * navConfig)
     navConfig->rth_altitude = 1000;      // 10m
     navConfig->pos_hold_deadband = 20;
     navConfig->alt_hold_deadband = 50;
+    navConfig->fw_nav_period_ms = 2000;
 }
 #endif
 

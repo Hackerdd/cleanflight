@@ -23,7 +23,9 @@
 
 #define RADX100                             0.000174532925f
 #define NAV_ROLL_PITCH_MAX                  (30 * 100) // Max control input from NAV (30 deg)
+
 #define NAV_ROLL_PITCH_MAX_FW               (15 * 100) // Max control input from NAV-FW (15 deg)
+#define NAV_ROLL_PITCH_MAX_FW_TAN           0.267949f  // Tangent of the above angle 
 
 #define POSITION_TARGET_UPDATE_RATE_HZ      5       // Rate manual position target update (minumum possible speed in cms will be this value)
 #define MIN_POSITION_UPDATE_RATE_HZ         5       // Minimum position update rate at which XYZ controllers would be applied
@@ -156,10 +158,15 @@ typedef struct {
 } pController_t;
 
 typedef struct navigationPIDControllers_s {
+    /* Multicopter PIDs */
     pController_t   pos[XYZ_AXIS_COUNT];
     pidController_t vel[XYZ_AXIS_COUNT];
     pidController_t accz;
     pController_t   heading;
+
+    /* Fixed-wing PIDs */
+    pidController_t fw_alt;
+    pidController_t fw_nav;
 } navigationPIDControllers_t;
 
 typedef struct {

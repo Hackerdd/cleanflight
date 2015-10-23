@@ -112,6 +112,7 @@ typedef struct navConfig_s {
     uint8_t  dterm_cut_hz;                  // Low pass filter cut frequency for D-term calculation (default 5Hz)
     uint8_t  pos_hold_deadband;             // Adds ability to adjust the Hold-position when moving the sticks (assisted mode)
     uint8_t  alt_hold_deadband;             // Defines the neutral zone of throttle stick during altitude hold
+    uint16_t fw_nav_period_ms;              // Fixed wing navigation controller tracking period
 } navConfig_t;
 
 // LLH Location in NEU axis system

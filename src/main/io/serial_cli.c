@@ -416,6 +416,7 @@ const clivalue_t valueTable[] = {
     { "nav_min_rth_distance",       VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.min_rth_distance, 0, 5000 },
     { "nav_rth_alt_mode",           VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.flags.rth_alt_control_style, 0, 3 },
     { "nav_rth_altitude",           VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.rth_altitude, 0, 10000 },
+    { "nav_fw_period_ms",           VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.fw_nav_period_ms, 0, 10000 },
 #endif
 
     { "serialrx_provider",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.serialrx_provider, 0, SERIALRX_PROVIDER_MAX },
