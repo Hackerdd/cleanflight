@@ -89,35 +89,6 @@ float navApplyFilter(float input, float fCut, float dT, float * state)
 /*-----------------------------------------------------------
  * Float point PID-controller implementation
  *-----------------------------------------------------------*/
-float navPidApply(float error, float dt, pidController_t *pid, bool onlyShrinkI)
-{
-    float newProportional, newIntegrator, newDerivative;
-
-    newProportional = error * pid->param.kP;
-
-    newIntegrator = pid->integrator + ((float)error * pid->param.kI) * dt;
-    if (onlyShrinkI && (fabsf(newIntegrator) > fabsf(pid->integrator))) {
-        newIntegrator = pid->integrator;    // Keep old integrator if allowed only to shrink and violates the condition
-    }
-    newIntegrator = constrainf(newIntegrator, -pid->param.Imax, pid->param.Imax);
-    pid->integrator = newIntegrator;
-
-    newDerivative = (error - pid->last_error) / dt;
-    pid->last_error = error;
-    if (posControl.navConfig->dterm_cut_hz)
-        newDerivative = pid->param.kD * navApplyFilter(newDerivative, posControl.navConfig->dterm_cut_hz, dt, &pid->dterm_filter_state);
-    else
-        newDerivative = pid->param.kD * newDerivative;
-
-#if defined(NAV_BLACKBOX)
-    pid->lastP = newProportional;
-    pid->lastI = newIntegrator;
-    pid->lastD = newDerivative;
-#endif
-
-    return newProportional + newIntegrator + newDerivative;
-}
-
 // Implementation of PID with back-calculation I-term anti-windup
 // Control System Design, Lecture Notes for ME 155A by Karl Johan Åström (p.228)
 // http://www.cds.caltech.edu/~murray/courses/cds101/fa02/caltech/astrom-ch6.pdf

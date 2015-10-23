@@ -27,7 +27,7 @@
 #endif
 
 // Features
-#define INAV_ENABLE_AUTO_MAG_DECLINATION
+//#define INAV_ENABLE_AUTO_MAG_DECLINATION
 
 // Maximum number of waypoints, special waypoint 0 = home,
 #define NAV_MAX_WAYPOINTS       15

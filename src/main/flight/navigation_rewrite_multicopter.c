@@ -120,7 +120,12 @@ static void updateAltitudeThrottleController_MC(uint32_t deltaMicros)
 {
     static float throttleFilterState;
     float accError = posControl.desiredState.acc.V.Z - posControl.actualState.acc.V.Z;
-    posControl.rcAdjustment[THROTTLE] = navPidApply(accError, US2S(deltaMicros), &posControl.pids.accz, false);
+
+    // Calculate min and max throttle boundaries (to compensate for integral windup)
+    float thrAdjustmentMin = posControl.escAndServoConfig->minthrottle - altholdInitialThrottle;
+    float thrAdjustmentMax = posControl.escAndServoConfig->maxthrottle - altholdInitialThrottle;
+
+    posControl.rcAdjustment[THROTTLE] = navPidApply2(accError, US2S(deltaMicros), &posControl.pids.accz, thrAdjustmentMin, thrAdjustmentMax);
     posControl.rcAdjustment[THROTTLE] = navApplyFilter(posControl.rcAdjustment[THROTTLE], NAV_THROTTLE_CUTOFF_FREQENCY_HZ, US2S(deltaMicros), &throttleFilterState);
     posControl.rcAdjustment[THROTTLE] = constrain(posControl.rcAdjustment[THROTTLE], -500, 500);
 }
