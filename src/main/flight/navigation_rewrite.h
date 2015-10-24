@@ -18,8 +18,12 @@
 #pragma once
 
 #include "common/maths.h"
+
 #include "io/rc_controls.h"
 #include "io/escservo.h"
+
+#include "flight/pid.h"
+#include "flight/failsafe.h"
 
 #define NAV
 #if defined(BLACKBOX)
@@ -55,13 +59,6 @@ enum {
     NAV_RTH_MAX_ALT         = 3,            // Track maximum altitude and climb to it when RTH
     NAV_RTH_AT_LEAST_ALT    = 4,            // Climb to predefined altitude if below it
 };
-
-typedef enum {
-    RTH_IDLE = 0,               // RTH is waiting
-    RTH_IN_PROGRESS_OK,         // RTH is active
-    RTH_IN_PROGRESS_LOST_GPS,   // RTH is active but has lost GPS lock
-    RTH_HAS_LANDED              // RTH is active and has landed.
-} rthState_e;
 
 typedef struct navConfig_s {
     struct {
@@ -181,7 +178,6 @@ void geoConvertGeodeticToLocal(gpsOrigin_s * origin, gpsLocation_t * llh, t_fp_v
 void geoConvertLocalToGeodetic(gpsOrigin_s * origin, t_fp_vector * pos, gpsLocation_t * llh);
 float geoCalculateMagDeclination(gpsLocation_t * llh); // degrees units
 
-bool canActivateForcedRTH(void);
 void activateForcedRTH(void);
 void abortForcedRTH(void);
 rthState_e getStateOfForcedRTH(void);

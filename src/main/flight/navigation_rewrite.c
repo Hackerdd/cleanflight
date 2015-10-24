@@ -839,11 +839,7 @@ static void setInitialDesiredPositionForXYController(void)
     }
 }
 
-/**
- * Process NAV mode transition and WP/RTH state machine
- *  Update rate: RX (data driven or 50Hz)
- */
-void updateWaypointsAndNavigationMode(void)
+static void processNavigationModeSwitch(void)
 {
     navigationMode_t newNavMode = NAV_MODE_NONE;
 
@@ -886,6 +882,16 @@ void updateWaypointsAndNavigationMode(void)
                 break;
         }
     }
+}
+
+/**
+ * Process NAV mode transition and WP/RTH state machine
+ *  Update rate: RX (data driven or 50Hz)
+ */
+void updateWaypointsAndNavigationMode(void)
+{
+    // Process switch to a different navigation mode (if needed)
+    processNavigationModeSwitch();
 
     // Initiate home position update
     updateHomePosition();
@@ -1040,19 +1046,16 @@ int16_t leanAngleToRcCommand(int16_t leanAngle)
 /*-----------------------------------------------------------
  * Ability to execute RTH on external event
  *-----------------------------------------------------------*/
-bool canActivateForcedRTH(void)
-{
-    return canActivatePosHoldMode() && STATE(GPS_FIX_HOME);
-}
-
 void activateForcedRTH(void)
 {
     posControl.flags.forcedRTHActivated = true;
+    processNavigationModeSwitch();
 }
 
 void abortForcedRTH(void)
 {
     posControl.flags.forcedRTHActivated = false;
+    processNavigationModeSwitch();
 }
 
 rthState_e getStateOfForcedRTH(void)

@@ -33,6 +33,7 @@
 #include "config/config.h"
 
 #include "flight/failsafe.h"
+#include "flight/navigation_rewrite.h"
 
 /*
  * Usage:
@@ -52,11 +53,6 @@ static failsafeConfig_t *failsafeConfig;
 static rxConfig_t *rxConfig;
 
 static uint16_t deadband3dThrottle;           // default throttle deadband from MIDRC
-
-// FIXME ProDrone: The next 3 functions are stubs that must be deleted from here and declared in RTH.H file and defined in RTH.C
-rthState_e getStateOfForcedRTH(void) {return RTH_IDLE;}
-void activateForcedRTH(void) {}
-void abortForcedRTH(void) {}
 
 static void failsafeReset(void)
 {
