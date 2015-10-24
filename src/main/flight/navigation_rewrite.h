@@ -138,8 +138,11 @@ typedef struct gpsOrigin_s {
 } gpsOrigin_s;
 
 typedef struct {
-    t_fp_vector pos;
-    int32_t     yaw;
+    struct {
+        bool isHomeWaypoint;       // for home waypoint yaw is set to "launch heading", for common waypoints - to "initial bearing"
+    }               flags;
+    t_fp_vector     pos;
+    int32_t         yaw;
 } navWaypointPosition_t;
 
 #if defined(NAV)

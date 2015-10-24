@@ -235,22 +235,19 @@ static void calculateVirtualPositionTarget_FW(float trackingPeriod)
     forwardVelocity = MAX(forwardVelocity, 100.0f);
     float trackingDistance = trackingPeriod * forwardVelocity;
 
-    // TODO: This code will need to be changed to function properly in waypoint mode
+    // If angular visibility of a waypoint is less than 10deg, don't calculate circular loiter, go straight to the target
+    #define TAN_5DEG    0.087489f
+    bool needToCalculateCircularLoiter = isApproachingLastWaypoint() && (distanceToActualTarget > (posControl.navConfig->waypoint_radius / TAN_5DEG));
 
     // Calculate virtual position for straight movement
-    #define TAN_5DEG    0.087489f
-    if (distanceToActualTarget > (posControl.navConfig->waypoint_radius / TAN_5DEG)) {
-        // If angular visibility of a waypoint is less than 10deg, don't calculate circular loiter, go straight to the target
-        virtualDesiredPosition.V.X = posControl.actualState.pos.V.X + posErrorX * (trackingDistance / distanceToActualTarget);
-        virtualDesiredPosition.V.Y = posControl.actualState.pos.V.Y + posErrorY * (trackingDistance / distanceToActualTarget);
-    }
-    else {
+    if (needToCalculateCircularLoiter) {
         // We are closing in on a waypoint, calculate circular loiter
         // Find a point on our circular loiter path closest to the airplane, calculate angle from waypoint venter to airplane
-        float loiterTargetAngleStep = constrainf(trackingDistance / posControl.navConfig->waypoint_radius, 10.0f * RAD, 90.0f * RAD);
+        float loiterRadius = posControl.navConfig->waypoint_radius * 0.9f;
+        float loiterTargetAngleStep = constrainf(trackingDistance / loiterRadius, 10.0f * RAD, 90.0f * RAD);
         float loiterTargetAngle = atan2_approx(-posErrorY, -posErrorX) + loiterTargetAngleStep;
-        float loiterTargetX = posControl.desiredState.pos.V.X + posControl.navConfig->waypoint_radius * cos_approx(loiterTargetAngle);
-        float loiterTargetY = posControl.desiredState.pos.V.Y + posControl.navConfig->waypoint_radius * sin_approx(loiterTargetAngle);
+        float loiterTargetX = posControl.desiredState.pos.V.X + loiterRadius * cos_approx(loiterTargetAngle);
+        float loiterTargetY = posControl.desiredState.pos.V.Y + loiterRadius * sin_approx(loiterTargetAngle);
 
         // We have temporary loiter target. Recalculate distance and position error
         posErrorX = loiterTargetX - posControl.actualState.pos.V.X;
@@ -258,6 +255,11 @@ static void calculateVirtualPositionTarget_FW(float trackingPeriod)
         distanceToActualTarget = sqrtf(sq(posErrorX) + sq(posErrorY));
 
         // Calculate cirtual waypoint at some close distance in front of the plain
+        virtualDesiredPosition.V.X = posControl.actualState.pos.V.X + posErrorX * (trackingDistance / distanceToActualTarget);
+        virtualDesiredPosition.V.Y = posControl.actualState.pos.V.Y + posErrorY * (trackingDistance / distanceToActualTarget);
+    }
+    else {
+        // If angular visibility of a waypoint is less than 10deg, don't calculate circular loiter, go straight to the target
         virtualDesiredPosition.V.X = posControl.actualState.pos.V.X + posErrorX * (trackingDistance / distanceToActualTarget);
         virtualDesiredPosition.V.Y = posControl.actualState.pos.V.Y + posErrorY * (trackingDistance / distanceToActualTarget);
     }

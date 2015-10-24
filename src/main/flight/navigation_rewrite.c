@@ -249,7 +249,21 @@ int32_t calculateBearingToDestination(t_fp_vector * destinationPos)
 /*-----------------------------------------------------------
  * Check if waypoint is/was reached
  *-----------------------------------------------------------*/
-bool isWaypointReached(navWaypointPosition_t *waypoint)
+bool isWaypointMissed(navWaypointPosition_t * waypoint)
+{
+    // We only can miss not home waypoint
+    if (waypoint->flags.isHomeWaypoint) {
+        return false;
+    }
+    else {
+        int32_t bearingError = calculateBearingToDestination(&waypoint->pos) - waypoint->yaw;
+        bearingError = wrap_18000(bearingError);
+
+        return ABS(bearingError) > 10000; // TRUE if we passed the waypoint by 100 degrees
+    }
+}
+
+bool isWaypointReached(navWaypointPosition_t * waypoint)
 {
     // We consider waypoint reached if within specified radius
     uint32_t wpDistance = calculateDistanceToDestination(&waypoint->pos);
@@ -275,8 +289,10 @@ static void updateHomePositionCompatibility(void)
  *-----------------------------------------------------------*/
 void setHomePosition(t_fp_vector * pos, int32_t yaw)
 {
+    posControl.homePosition.flags.isHomeWaypoint = true;
     posControl.homePosition.pos = *pos;
     posControl.homePosition.yaw = yaw;
+
     posControl.homeDistance = 0;
     posControl.homeDirection = 0;
 
@@ -336,6 +352,17 @@ void setDesiredPosition(t_fp_vector * pos, int32_t yaw, navSetWaypointFlags_t us
     else if ((useMask & NAV_POS_UPDATE_BEARING) != 0) {
         posControl.desiredState.yaw = calculateBearingToDestination(pos);
     }
+}
+
+void setDesiredPositionToFarAwayTarget(int32_t yaw, int32_t distance, navSetWaypointFlags_t useMask)
+{
+    t_fp_vector farAwayPos;
+
+    farAwayPos.V.X = posControl.actualState.pos.V.X + distance * cos_approx(yaw * RADX100);
+    farAwayPos.V.Y = posControl.actualState.pos.V.Y + distance * sin_approx(yaw * RADX100);
+    farAwayPos.V.Z = posControl.actualState.pos.V.Z;
+
+    setDesiredPosition(&farAwayPos, yaw, useMask);
 }
 
 /*-----------------------------------------------------------
@@ -547,6 +574,7 @@ void setWaypoint(uint8_t wpNumber, int32_t wpLat, int32_t wpLon, int32_t wpAlt)
         uint8_t wpIndex = wpNumber - 1;
         /* Sanity check - can set waypoints only sequentially - one by one */
         if (wpIndex <= posControl.waypointCount) {
+            wpPos.flags.isHomeWaypoint = false;
             posControl.waypointList[wpIndex] = wpPos;
             posControl.waypointCount = wpIndex + 1;
         }

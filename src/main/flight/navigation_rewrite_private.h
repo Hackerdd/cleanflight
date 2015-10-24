@@ -87,6 +87,7 @@ typedef enum navAutonomousMissionState_e {
     NAV_AUTO_RTH_INIT = 0,
     NAV_AUTO_RTH_CLIMB_TO_SAVE_ALTITUDE,
     NAV_AUTO_RTH_HEAD_HOME,
+    NAV_AUTO_RTH_AUTOLAND_INIT,
     // Waypoint mission mode
     NAV_AUTO_WP_INIT,
     NAV_AUTO_WP,
@@ -244,7 +245,10 @@ void resetLandingDetector(void);
 bool isLandingDetected(void);
 void setHomePosition(t_fp_vector * pos, int32_t yaw);
 void setDesiredPosition(t_fp_vector * pos, int32_t yaw, navSetWaypointFlags_t useMask);
-bool isWaypointReached(navWaypointPosition_t *waypoint);
+void setDesiredPositionToFarAwayTarget(int32_t yaw, int32_t distance, navSetWaypointFlags_t useMask);
+bool isWaypointReached(navWaypointPosition_t * waypoint);
+bool isWaypointMissed(navWaypointPosition_t * waypoint);
+bool isApproachingLastWaypoint(void);
 
 int16_t rcCommandToLeanAngle(int16_t rcCommand);
 int16_t leanAngleToRcCommand(int16_t leanAngle);
