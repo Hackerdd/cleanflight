@@ -24,9 +24,6 @@
 #define RADX100                             0.000174532925f
 #define NAV_ROLL_PITCH_MAX                  (30 * 100) // Max control input from NAV (30 deg)
 
-#define NAV_ROLL_PITCH_MAX_FW               (15 * 100) // Max control input from NAV-FW (15 deg)
-#define NAV_ROLL_PITCH_MAX_FW_TAN           0.267949f  // Tangent of the above angle 
-
 #define POSITION_TARGET_UPDATE_RATE_HZ      5       // Rate manual position target update (minumum possible speed in cms will be this value)
 #define MIN_POSITION_UPDATE_RATE_HZ         5       // Minimum position update rate at which XYZ controllers would be applied
 
@@ -42,6 +39,7 @@
 #define HZ2US(hz)   (1000000 / (hz))
 #define US2S(us)    ((us) * 1e-6f)
 #define MS2US(ms)   ((ms) * 1000)
+#define HZ2S(hz)    US2S(HZ2US(hz))
 
 // FIXME: Make this configurable, default to about 5% highet than minthrottle
 #define minFlyableThrottle  (posControl.escAndServoConfig->minthrottle + (posControl.escAndServoConfig->maxthrottle - posControl.escAndServoConfig->minthrottle) * 5 / 100)

@@ -256,7 +256,15 @@ void resetNavConfig(navConfig_t * navConfig)
     navConfig->rth_altitude = 1000;      // 10m
     navConfig->pos_hold_deadband = 20;
     navConfig->alt_hold_deadband = 50;
-    navConfig->fw_nav_period_ms = 2000;
+
+    // Fixed wing
+    navConfig->fw_max_bank_angle = 20;
+    navConfig->fw_max_climb_angle = 15;
+    navConfig->fw_max_dive_angle = 15;
+    navConfig->fw_cruise_throttle = 1500;
+    navConfig->fw_max_throttle = 1900;
+    navConfig->fw_min_throttle = 1300;
+    navConfig->fw_pitch_to_throttle = 20;
 }
 #endif
 

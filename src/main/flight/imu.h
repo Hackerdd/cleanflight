@@ -26,9 +26,15 @@ extern int16_t accSmooth[XYZ_AXIS_COUNT];
 extern int16_t smallAngle;
 extern t_fp_vector imuAccelInBodyFrame;
 
-#define DEGREES_TO_DECIDEGREES(angle) (angle * 10)
-#define DECIDEGREES_TO_DEGREES(angle) (angle / 10)
-#define DECIDEGREES_TO_RADIANS(angle) ((angle / 10.0f) * 0.0174532925f)
+#define DEGREES_TO_CENTIDEGREES(angle) ((angle) * 100)
+#define CENTIDEGREES_TO_DEGREES(angle) ((angle) / 100)
+
+#define CENTIDEGREES_TO_DECIDEGREES(angle) ((angle) / 10)
+#define DECIDEGREES_TO_CENTIDEGREES(angle) ((angle) * 10)
+
+#define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
+#define DECIDEGREES_TO_DEGREES(angle) ((angle) / 10)
+#define DECIDEGREES_TO_RADIANS(angle) (((angle) / 10.0f) * 0.0174532925f)
 
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];

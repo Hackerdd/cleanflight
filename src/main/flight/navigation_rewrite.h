@@ -112,7 +112,14 @@ typedef struct navConfig_s {
     uint8_t  dterm_cut_hz;                  // Low pass filter cut frequency for D-term calculation (default 5Hz)
     uint8_t  pos_hold_deadband;             // Adds ability to adjust the Hold-position when moving the sticks (assisted mode)
     uint8_t  alt_hold_deadband;             // Defines the neutral zone of throttle stick during altitude hold
-    uint16_t fw_nav_period_ms;              // Fixed wing navigation controller tracking period
+
+    uint8_t  fw_max_bank_angle;             // Fixed wing max banking angle (deg)
+    uint8_t  fw_max_climb_angle;            // Fixed wing max banking angle (deg)
+    uint8_t  fw_max_dive_angle;             // Fixed wing max banking angle (deg)
+    uint16_t fw_cruise_throttle;            // Cruise throttle
+    uint16_t fw_min_throttle;               // Minimum allowed throttle in auto mode
+    uint16_t fw_max_throttle;               // Maximum allowed throttle in auto mode
+    uint8_t  fw_pitch_to_throttle;          // Pitch angle (in deg) to throttle gain (in 1/1000's of throttle) (*10)
 } navConfig_t;
 
 // LLH Location in NEU axis system

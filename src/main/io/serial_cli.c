@@ -416,7 +416,13 @@ const clivalue_t valueTable[] = {
     { "nav_min_rth_distance",       VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.min_rth_distance, 0, 5000 },
     { "nav_rth_alt_mode",           VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.flags.rth_alt_control_style, 0, 3 },
     { "nav_rth_altitude",           VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.rth_altitude, 0, 10000 },
-    { "nav_fw_period_ms",           VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.fw_nav_period_ms, 0, 10000 },
+    { "nav_fw_bank_angle",          VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.fw_max_bank_angle, 5, 45 },
+    { "nav_fw_climb_angle",         VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.fw_max_climb_angle, 5, 45 },
+    { "nav_fw_dive_angle",          VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.fw_max_dive_angle, 5, 45 },
+    { "nav_fw_cruise_thr",          VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.fw_max_dive_angle, 1000, 2000 },
+    { "nav_fw_min_thr",             VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.fw_min_throttle, 1000, 2000 },
+    { "nav_fw_max_thr",             VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.fw_max_throttle, 1000, 2000 },
+    { "nav_fw_pitch2thr",           VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.fw_pitch_to_throttle, 0, 100 },
 #endif
 
     { "serialrx_provider",          VAR_UINT8  | MASTER_VALUE,  &masterConfig.rxConfig.serialrx_provider, 0, SERIALRX_PROVIDER_MAX },
