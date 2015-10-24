@@ -71,7 +71,7 @@ static void updateAltitudeTargetFromRCInput_FW(void)
 
     if (rcAdjustment) {
         // set velocity proportional to stick movement
-        float rcClimbRate = rcAdjustment * posControl.navConfig->max_manual_climb_rate / (500.0f - posControl.navConfig->alt_hold_deadband);
+        float rcClimbRate = -rcAdjustment * posControl.navConfig->max_manual_climb_rate / (500.0f - posControl.navConfig->alt_hold_deadband);
         updateAltitudeTargetFromClimbRate(rcClimbRate);
         posControl.flags.isAdjustingAltitude = true;
     }
