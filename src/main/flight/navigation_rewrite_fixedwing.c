@@ -237,7 +237,7 @@ static void calculateVirtualPositionTarget_FW(float trackingPeriod)
 
     // If angular visibility of a waypoint is less than 10deg, don't calculate circular loiter, go straight to the target
     #define TAN_5DEG    0.087489f
-    bool needToCalculateCircularLoiter = isApproachingLastWaypoint() && (distanceToActualTarget > (posControl.navConfig->waypoint_radius / TAN_5DEG));
+    bool needToCalculateCircularLoiter = isApproachingLastWaypoint() && (distanceToActualTarget <= (posControl.navConfig->waypoint_radius / TAN_5DEG));
 
     // Calculate virtual position for straight movement
     if (needToCalculateCircularLoiter) {
