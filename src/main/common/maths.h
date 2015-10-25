@@ -30,6 +30,19 @@
 
 #define RAD    (M_PIf / 180.0f)
 
+#define DEGREES_TO_CENTIDEGREES(angle) ((angle) * 100)
+#define CENTIDEGREES_TO_DEGREES(angle) ((angle) / 100)
+
+#define CENTIDEGREES_TO_DECIDEGREES(angle) ((angle) / 10)
+#define DECIDEGREES_TO_CENTIDEGREES(angle) ((angle) * 10)
+
+#define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
+#define DECIDEGREES_TO_DEGREES(angle) ((angle) / 10)
+
+#define DEGREES_TO_RADIANS(angle) ((angle) * RAD)
+#define DECIDEGREES_TO_RADIANS(angle) (((angle) / 10.0f) * RAD)
+
+
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define ABS(x) ((x) > 0 ? (x) : -(x))
@@ -75,6 +88,15 @@ typedef struct filterWithBufferState_s {
     uint16_t sample_index;
     filterWithBufferSample_t * samples;
 } filterWithBufferState_t;
+
+typedef struct {
+    float XtY[4];
+    float XtX[4][4];
+} offsetCalibrationState_t;
+
+void offsetCalibrationResetState(offsetCalibrationState_t * state);
+void offsetCalibrationPushSample(offsetCalibrationState_t * state, int16_t sample[3]);
+void offsetCalibrationCalculateOffset(offsetCalibrationState_t * state, float offset[3]);
 
 int32_t applyDeadband(int32_t value, int32_t deadband);
 

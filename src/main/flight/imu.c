@@ -146,25 +146,15 @@ void imuTransformVectorEarthToBody(t_fp_vector * v)
 // Calculate acceleration in body frame
 static void imuCalculateAcceleration(uint32_t deltaT)
 {
-    static float accGainCorrectionFactor = 1.0f;
-
     int axis;
     float accDt = deltaT * 1e-6f;
 
     for (axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
         // Read sensor and convert to cm/s^2
-        float accValueCMSS = accADC[axis] * (GRAVITY_CMSS / acc_1G) * accGainCorrectionFactor;
+        float accValueCMSS = accADC[axis] * (GRAVITY_CMSS / acc_1G);
 
         // Apply LPF to acceleration: y[i] = y[i-1] + alpha * (x[i] - y[i-1])
         imuAccelInBodyFrame.A[axis] += (accDt / ((0.5f / (M_PIf * ACCELERATION_LPF_HZ)) + accDt)) * (accValueCMSS - imuAccelInBodyFrame.A[axis]);
-    }
-
-    /* When unarmed, assume that accelerometer should measure 1G. Use that to correct accelerometer gain */
-    if (!ARMING_FLAG(ARMED) && imuRuntimeConfig->acc_unarmedcal) {
-        float accMagnitude = sqrtf(sq(imuAccelInBodyFrame.V.X) + sq(imuAccelInBodyFrame.V.Y) + sq(imuAccelInBodyFrame.V.Z));
-        if (accMagnitude >= 0.01f) {
-            accGainCorrectionFactor += ((GRAVITY_CMSS / accMagnitude) - accGainCorrectionFactor) * 0.01f;
-        }
     }
 }
 
@@ -375,12 +365,12 @@ static void imuCalculateEstimatedAttitude(void)
     imuCalculateAcceleration(deltaT); // rotate acc vector into earth frame and store it for future usage
 }
 
-void imuUpdate(rollAndPitchTrims_t *accelerometerTrims)
+void imuUpdate(void)
 {
     gyroUpdate();
 
     if (sensors(SENSOR_ACC)) {
-        updateAccelerationReadings(accelerometerTrims);
+        updateAccelerationReadings();
         imuCalculateEstimatedAttitude();
     } else {
         accADC[X] = 0;

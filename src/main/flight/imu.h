@@ -26,16 +26,6 @@ extern int16_t accSmooth[XYZ_AXIS_COUNT];
 extern int16_t smallAngle;
 extern t_fp_vector imuAccelInBodyFrame;
 
-#define DEGREES_TO_CENTIDEGREES(angle) ((angle) * 100)
-#define CENTIDEGREES_TO_DEGREES(angle) ((angle) / 100)
-
-#define CENTIDEGREES_TO_DECIDEGREES(angle) ((angle) / 10)
-#define DECIDEGREES_TO_CENTIDEGREES(angle) ((angle) * 10)
-
-#define DEGREES_TO_DECIDEGREES(angle) ((angle) * 10)
-#define DECIDEGREES_TO_DEGREES(angle) ((angle) / 10)
-#define DECIDEGREES_TO_RADIANS(angle) (((angle) / 10.0f) * 0.0174532925f)
-
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];
     struct {
@@ -59,7 +49,7 @@ typedef struct imuRuntimeConfig_s {
 void imuConfigure(imuRuntimeConfig_t *initialImuRuntimeConfig, pidProfile_t *initialPidProfile);
 
 void calculateEstimatedAltitude(uint32_t currentTime);
-void imuUpdate(rollAndPitchTrims_t *accelerometerTrims);
+void imuUpdate(void);
 float calculateThrottleTiltCompensationFactor(uint8_t throttleTiltCompensationStrength);
 float calculateCosTiltAngle(void);
 bool isImuReady(void);

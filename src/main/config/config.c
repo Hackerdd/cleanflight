@@ -451,9 +451,9 @@ static void resetConf(void)
 
     resetSensorAlignment(&masterConfig.sensorAlignmentConfig);
 
-    masterConfig.boardAlignment.rollDegrees = 0;
-    masterConfig.boardAlignment.pitchDegrees = 0;
-    masterConfig.boardAlignment.yawDegrees = 0;
+    masterConfig.boardAlignment.rollDeciDegrees = 0;
+    masterConfig.boardAlignment.pitchDeciDegrees = 0;
+    masterConfig.boardAlignment.yawDeciDegrees = 0;
     masterConfig.acc_hardware = ACC_DEFAULT;     // default/autodetect
     masterConfig.max_angle_inclination = 500;    // 50 degrees
     masterConfig.yaw_control_direction = 1;
@@ -530,8 +530,6 @@ static void resetConf(void)
 
     // for (i = 0; i < CHECKBOXITEMS; i++)
     //     cfg.activate[i] = 0;
-
-    resetRollAndPitchTrims(&currentProfile->accelerometerTrims);
 
     currentProfile->mag_declination = 0;
     currentProfile->acc_cut_hz = 15;
@@ -743,7 +741,7 @@ void activateConfig(void)
     pidSetController(currentProfile->pidProfile.pidController);
 
     useFailsafeConfig(&masterConfig.failsafeConfig);
-    setAccelerationTrims(&masterConfig.accZero);
+    setAccelerationZero(&masterConfig.accZero);
 
     mixerUseConfigs(
 #ifdef USE_SERVOS
@@ -878,6 +876,13 @@ void validateAndFixConfig(void)
     if (!isSerialConfigValid(serialConfig)) {
         resetSerialConfig(serialConfig);
     }
+}
+
+void applyAndSaveBoardAlignmentDelta(int16_t roll, int16_t pitch)
+{
+    updateBoardAlignment(&masterConfig.boardAlignment, roll, pitch);
+
+    saveConfigAndNotify();
 }
 
 void initEEPROM(void)

@@ -59,21 +59,14 @@ void compassInit(void)
     magInit = 1;
 }
 
-/*
- *  Offset learning algorithm is inspired by this paper from Bill Premerlani
- *  http://gentlenav.googlecode.com/files/MagnetometerOffsetNullingRevisited.pdf
- */
+static offsetCalibrationState_t calState;
 
 #define COMPASS_UPDATE_FREQUENCY_10HZ   (1000 * 100)
-#define MAG_CALIBRATION_GAIN            0.05f
-#define MAG_OFFSET_LIMIT                2000
-#define MAG_DIFF_THRESHOLD              25.0f
 
 void updateCompass(flightDynamicsTrims_t *magZero)
 {
     static uint32_t nextUpdateAt, calStartedAt = 0;
-    static float magZerof[XYZ_AXIS_COUNT];      // Used only for calibration purposes
-    static int16_t magADCPrev[XYZ_AXIS_COUNT];         // Previous measurement
+    static int16_t magPrev[XYZ_AXIS_COUNT];
     uint32_t axis;
 
     if ((int32_t)(currentTime - nextUpdateAt) < 0)
@@ -85,10 +78,13 @@ void updateCompass(flightDynamicsTrims_t *magZero)
 
     if (STATE(CALIBRATE_MAG)) {
         calStartedAt = nextUpdateAt;
+
         for (axis = 0; axis < 3; axis++) {
-            magADCPrev[axis] = magADC[axis];
-            magZerof[axis] = magZero->raw[axis];
+            magZero->raw[axis] = 0;
+            magPrev[axis] = 0;
         }
+
+        offsetCalibrationResetState(&calState);
         DISABLE_STATE(CALIBRATE_MAG);
     }
 
@@ -100,31 +96,32 @@ void updateCompass(flightDynamicsTrims_t *magZero)
 
     if (calStartedAt != 0) {
         if ((nextUpdateAt - calStartedAt) < 30000000) {    // 30s: you have 30s to turn the multi in all directions
-            // Still calibrating - update magZero
-            float newMagnitude = 0;
-            float prevMagnitude = 0;
-            float diffMagnitude = 0;
+            LED0_TOGGLE;
+
+            float diffMag = 0;
+            float avgMag = 0;
 
             for (axis = 0; axis < 3; axis++) {
-                newMagnitude += (float)magADC[axis] * magADC[axis];
-                prevMagnitude += (float)magADCPrev[axis] * magADCPrev[axis];
-                diffMagnitude += ((float)magADC[axis] - magADCPrev[axis]) * ((float)magADC[axis] - magADCPrev[axis]);
+                diffMag += (magADC[axis] - magPrev[axis]) * (magADC[axis] - magPrev[axis]);
+                avgMag += (magADC[axis] + magPrev[axis]) * (magADC[axis] + magPrev[axis]) / 4.0f;
             }
 
-            diffMagnitude = sqrtf(diffMagnitude);
-
-            if (diffMagnitude > MAG_DIFF_THRESHOLD) {
-                newMagnitude = sqrtf(newMagnitude);
-                prevMagnitude = sqrtf(prevMagnitude);
+            // sqrtf(diffMag / avgMag) is a rough approximation of tangent of angle between magADC and magPrev. tan(8 deg) = 0.14
+            if ((avgMag > 0.01f) && ((diffMag / avgMag) > (0.14f * 0.14f))) {
+                offsetCalibrationPushSample(&calState, magADC);
 
                 for (axis = 0; axis < 3; axis++) {
-                    magZerof[axis] += MAG_CALIBRATION_GAIN * ((float)magADC[axis] - (int32_t)magADCPrev[axis]) * (newMagnitude - prevMagnitude) / diffMagnitude;
-                    magZerof[axis] = constrainf(magZerof[axis], -MAG_OFFSET_LIMIT, MAG_OFFSET_LIMIT);
-                    magZero->raw[axis] = lrintf(magZerof[axis]);
-                    magADCPrev[axis] = magADC[axis];
+                    magPrev[axis] = magADC[axis];
                 }
             }
         } else {
+            float magZerof[3];
+            offsetCalibrationCalculateOffset(&calState, magZerof);
+
+            for (axis = 0; axis < 3; axis++) {
+                magZero->raw[axis] = lrintf(magZerof[axis]);
+            }
+
             calStartedAt = 0;
             persistentFlagSet(FLAG_MAG_CALIBRATION_DONE);
             saveConfigAndNotify();

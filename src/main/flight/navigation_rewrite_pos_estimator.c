@@ -333,6 +333,8 @@ static void updateSonarTopic(uint32_t currentTime)
  */
 static void updateIMUTopic(uint32_t currentTime)
 {
+    static float calibratedGravityCMSS = GRAVITY_CMSS;
+
     if (!isImuReady()) {
         posEstimator.imu.accelNEU.V.X = 0;
         posEstimator.imu.accelNEU.V.Y = 0;
@@ -357,7 +359,16 @@ static void updateIMUTopic(uint32_t currentTime)
         /* Read acceleration data in NEU frame from IMU */
         posEstimator.imu.accelNEU.V.X = accelBF.V.X;
         posEstimator.imu.accelNEU.V.Y = accelBF.V.Y;
-        posEstimator.imu.accelNEU.V.Z = accelBF.V.Z - GRAVITY_CMSS;
+        posEstimator.imu.accelNEU.V.Z = accelBF.V.Z;
+
+        /* When unarmed, assume that accelerometer should measure 1G. Use that to correct accelerometer gain */
+        //if (!ARMING_FLAG(ARMED) && imuRuntimeConfig->acc_unarmedcal) {
+        if (!ARMING_FLAG(ARMED)) {
+            // Slowly converge on calibrated gravity while level
+            calibratedGravityCMSS += (posEstimator.imu.accelNEU.V.Z - calibratedGravityCMSS) * 0.0025f;
+        }
+
+        posEstimator.imu.accelNEU.V.Z -= calibratedGravityCMSS;
     }
 }
 

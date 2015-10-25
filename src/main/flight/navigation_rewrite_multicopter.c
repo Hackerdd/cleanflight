@@ -125,9 +125,13 @@ static void updateAltitudeThrottleController_MC(uint32_t deltaMicros)
     float thrAdjustmentMin = posControl.escAndServoConfig->minthrottle - altholdInitialThrottle;
     float thrAdjustmentMax = posControl.escAndServoConfig->maxthrottle - altholdInitialThrottle;
 
+    NAV_BLACKBOX_DEBUG(0, lrintf(posControl.actualState.acc.V.Z));
+    NAV_BLACKBOX_DEBUG(1, lrintf(posControl.desiredState.acc.V.Z));
+    NAV_BLACKBOX_DEBUG(1, lrintf(posControl.desiredState.acc.V.Z));
+
     posControl.rcAdjustment[THROTTLE] = navPidApply2(accError, US2S(deltaMicros), &posControl.pids.accz, thrAdjustmentMin, thrAdjustmentMax);
     posControl.rcAdjustment[THROTTLE] = navApplyFilter(posControl.rcAdjustment[THROTTLE], NAV_THROTTLE_CUTOFF_FREQENCY_HZ, US2S(deltaMicros), &throttleFilterState);
-    posControl.rcAdjustment[THROTTLE] = constrain(posControl.rcAdjustment[THROTTLE], -500, 500);
+    posControl.rcAdjustment[THROTTLE] = constrain(posControl.rcAdjustment[THROTTLE], thrAdjustmentMin, thrAdjustmentMax);
 }
 
 void setupMulticopterAltitudeController(void)
@@ -471,11 +475,6 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
     // Save last acceleration target
     lastAccelTargetX = newAccelX;
     lastAccelTargetY = newAccelY;
-
-    NAV_BLACKBOX_DEBUG(0, lrintf(posControl.pids.vel[X].lastP));
-    NAV_BLACKBOX_DEBUG(1, lrintf(posControl.pids.vel[X].lastI));
-    NAV_BLACKBOX_DEBUG(2, lrintf(posControl.pids.vel[Y].lastP));
-    NAV_BLACKBOX_DEBUG(3, lrintf(posControl.pids.vel[Y].lastI));
 
     // Apply LPF to jerk limited acceleration target
     posControl.desiredState.acc.V.X = navApplyFilter(newAccelX, NAV_ACCEL_CUTOFF_FREQUENCY_HZ, US2S(deltaMicros), &mcPosControllerAccFilterStateX);
