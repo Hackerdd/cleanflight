@@ -226,6 +226,7 @@ void resetNavConfig(navConfig_t * navConfig)
 #endif
     navConfig->inav.enable_dead_reckoning = 0;
     navConfig->inav.gps_delay_ms = 200;
+    navConfig->inav.accz_unarmed_cal = 1;
 
     navConfig->inav.w_z_baro_p = 1.0f;
     navConfig->inav.w_z_baro_v = 0.5f;
@@ -244,7 +245,7 @@ void resetNavConfig(navConfig_t * navConfig)
     navConfig->inav.w_z_res_v = 0.5f;
     navConfig->inav.w_xy_res_v = 0.5f;
 
-    navConfig->inav.w_acc_bias = 0.05f;
+    navConfig->inav.w_acc_bias = 0.01f;
 
     navConfig->inav.max_eph_epv = 1000.0f;
     navConfig->inav.sonar_epv = 20.0f;
@@ -537,7 +538,6 @@ static void resetConf(void)
 
     currentProfile->mag_declination = 0;
     currentProfile->acc_cut_hz = 15;
-    currentProfile->acc_unarmedcal = 1;
 
     resetBarometerConfig(&currentProfile->barometerConfig);
 
@@ -762,7 +762,6 @@ void activateConfig(void)
     imuRuntimeConfig.dcm_kp = masterConfig.dcm_kp / 10000.0f;
     imuRuntimeConfig.dcm_ki = masterConfig.dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_cut_hz = currentProfile->acc_cut_hz;
-    imuRuntimeConfig.acc_unarmedcal = currentProfile->acc_unarmedcal;
     imuRuntimeConfig.small_angle = masterConfig.small_angle;
 
     imuConfigure(&imuRuntimeConfig, &currentProfile->pidProfile);

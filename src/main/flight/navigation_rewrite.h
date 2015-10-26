@@ -74,6 +74,7 @@ typedef struct navConfig_s {
         uint8_t automatic_mag_declination;
 #endif
         uint8_t enable_dead_reckoning;
+        uint8_t accz_unarmed_cal;
         uint16_t gps_delay_ms;
 
         float w_z_baro_p;   // Weight (cutoff frequency) for barometer altitude measurements

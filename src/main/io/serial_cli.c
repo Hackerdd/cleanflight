@@ -382,6 +382,7 @@ const clivalue_t valueTable[] = {
     { "inav_auto_mag_decl",         VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.inav.automatic_mag_declination, 0, 1 },
 #endif
 
+    { "inav_accz_unarmedcal",       VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.inav.accz_unarmed_cal, 0, 1 },
     { "inav_dead_reckoning",        VAR_UINT8  | MASTER_VALUE, &masterConfig.navConfig.inav.enable_dead_reckoning, 0, 1 },
     { "inav_gps_delay",             VAR_UINT16 | MASTER_VALUE, &masterConfig.navConfig.inav.gps_delay_ms, 0, 500 },
 
@@ -506,7 +507,6 @@ const clivalue_t valueTable[] = {
 
     { "acc_hardware",               VAR_UINT8  | MASTER_VALUE,  &masterConfig.acc_hardware, 0, ACC_MAX },
     { "acc_cut_hz",                 VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].acc_cut_hz, 0, 200 },
-    { "acc_unarmedcal",             VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].acc_unarmedcal, 0, 1 },
 
     { "baro_tab_size",              VAR_UINT8  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_sample_count, 0, BARO_SAMPLE_COUNT_MAX },
     { "baro_noise_lpf",             VAR_FLOAT  | PROFILE_VALUE, &masterConfig.profile[0].barometerConfig.baro_noise_lpf, 0, 1 },

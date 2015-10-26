@@ -331,7 +331,7 @@ static void updateSonarTopic(uint32_t currentTime)
  * Update IMU topic
  *  Function is called at main loop rate
  */
-static void updateIMUTopic(uint32_t currentTime)
+static void updateIMUTopic(void)
 {
     static float calibratedGravityCMSS = GRAVITY_CMSS;
 
@@ -363,7 +363,7 @@ static void updateIMUTopic(uint32_t currentTime)
 
         /* When unarmed, assume that accelerometer should measure 1G. Use that to correct accelerometer gain */
         //if (!ARMING_FLAG(ARMED) && imuRuntimeConfig->acc_unarmedcal) {
-        if (!ARMING_FLAG(ARMED)) {
+        if (!ARMING_FLAG(ARMED) && posControl.navConfig->inav.accz_unarmed_cal) {
             // Slowly converge on calibrated gravity while level
             calibratedGravityCMSS += (posEstimator.imu.accelNEU.V.Z - calibratedGravityCMSS) * 0.0025f;
         }
@@ -665,7 +665,7 @@ void updatePositionEstimator(void)
 #endif
 
     /* Read updates from IMU, preprocess */
-    updateIMUTopic(currentTime);
+    updateIMUTopic();
 
     /* Update estimate */
     updateEstimatedTopic(currentTime);
