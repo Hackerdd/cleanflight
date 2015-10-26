@@ -396,19 +396,40 @@ void mwArm(void)
     }
 }
 
+void applyMagHold(void)
+{
+    int16_t dif = DECIDEGREES_TO_DEGREES(attitude.values.yaw) - magHold;
+
+    if (dif <= -180) {
+        dif += 360;
+    }
+
+    if (dif >= +180) {
+        dif -= 360;
+    }
+
+    dif *= masterConfig.yaw_control_direction;
+
+    if (STATE(SMALL_ANGLE)) {
+        rcCommand[YAW] = dif * currentProfile->pidProfile.P8[PIDMAG] / 30;
+    }
+}
+
 void updateMagHold(void)
 {
+#if defined(NAV)
+    // NAV will prevent MAG_MODE from activating, but require heading control
+    if (naivationControlsHeadingNow()) {
+        applyMagHold();
+    }
+    else
+#endif
     if (ABS(rcCommand[YAW]) < 70 && FLIGHT_MODE(MAG_MODE)) {
-        int16_t dif = DECIDEGREES_TO_DEGREES(attitude.values.yaw) - magHold;
-        if (dif <= -180)
-            dif += 360;
-        if (dif >= +180)
-            dif -= 360;
-        dif *= -masterConfig.yaw_control_direction;
-        if (STATE(SMALL_ANGLE))
-            rcCommand[YAW] -= dif * currentProfile->pidProfile.P8[PIDMAG] / 30;    // 18 deg
-    } else
+        applyMagHold();
+    }
+    else {
         magHold = DECIDEGREES_TO_DEGREES(attitude.values.yaw);
+    }
 }
 
 typedef enum {
@@ -736,12 +757,6 @@ void loop(void)
         haveProcessedAnnexCodeOnce = true;
 #endif
 
-#ifdef MAG
-        if (sensors(SENSOR_MAG)) {
-        	updateMagHold();
-        }
-#endif
-
 #ifdef GTUNE
         updateGtuneState();
 #endif
@@ -749,6 +764,13 @@ void loop(void)
 #if defined(NAV)
         updatePositionEstimator();
         applyWaypointNavigationAndAltitudeHold();
+#endif
+
+#ifdef MAG
+        // Apply this after navigation (iNav needs rcCommand to hold actual values)
+        if (sensors(SENSOR_MAG)) {
+            updateMagHold();
+        }
 #endif
 
         // If we're armed, at minimum throttle, and we do arming via the

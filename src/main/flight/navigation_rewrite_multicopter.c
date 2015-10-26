@@ -47,28 +47,17 @@
 #define HOVER_ACCZ_THRESHOLD    5.0f    // cm/s/s
 #define HOVER_THR_FILTER        0.025f
 
+
+/*-----------------------------------------------------------
+ * Backdoor to MW heading controller
+ *-----------------------------------------------------------*/
+extern int16_t magHold;
+
 /*-----------------------------------------------------------
  * Altitude controller for multicopter aircraft
  *-----------------------------------------------------------*/
 static int16_t altholdInitialThrottle;      // Throttle input when althold was activated
-static float hoverThrottle = 0;
 static int16_t rcCommandAdjustedThrottle;
-
-static void updateHoverThrottle(void)
-{
-    if (hoverThrottle <= posControl.escAndServoConfig->minthrottle) {
-        // FIXME: make this configurable
-        hoverThrottle = posControl.rxConfig->midrc;
-    }
-    else {
-        if (posControl.flags.hasValidAltitudeSensor && posControl.actualState.acc.V.Z <= HOVER_ACCZ_THRESHOLD) {
-            hoverThrottle += (rcCommand[THROTTLE] - hoverThrottle) * HOVER_THR_FILTER;
-        }
-    }
-
-    // FIXME: Make us of this after verification that it works
-    //NAV_BLACKBOX_DEBUG(0, hoverThrottle);
-}
 
 static void updateAltitudeTargetFromRCInput_MC(void)
 {
@@ -219,23 +208,6 @@ void applyMulticopterAltitudeController(uint32_t currentTime)
 /*-----------------------------------------------------------
  * Heading controller for multicopter aircraft
  *-----------------------------------------------------------*/
-
-/*-----------------------------------------------------------
- * Calculate rcAdjustment for YAW
- *-----------------------------------------------------------*/
-static void calculateHeadingAdjustment_MC(void)
-{
-    // Calculate yaw correction
-    int32_t headingError = wrap_18000(posControl.actualState.yaw - posControl.desiredState.yaw) * posControl.yawControlDirection;
-    headingError = constrain(headingError, -3000, 3000); // limit error to +- 30 degrees to avoid fast rotation
-
-    // FIXME: SMALL_ANGLE might prevent NAV from adjusting yaw when banking is too high (i.e. nav in high wind)
-    if (STATE(SMALL_ANGLE)) {
-        // Heading PID controller takes degrees, not centidegrees (this pid duplicates MAGHOLD)
-        posControl.rcAdjustment[YAW] = (headingError / 100.0f) * posControl.pids.heading.param.kP;
-    }
-}
-
 /*-----------------------------------------------------------
  * Adjusts desired heading from pilot's input
  *-----------------------------------------------------------*/
@@ -247,16 +219,10 @@ static void adjustHeadingFromRCInput_MC()
         return;
     }
 
-    // Passthrough yaw input if stick is moved
     int16_t rcYawAdjustment = applyDeadband(rcCommand[YAW], posControl.navConfig->pos_hold_deadband);
-    if (rcYawAdjustment) {
-        posControl.rcAdjustment[YAW] = rcYawAdjustment;
-
+    if (rcYawAdjustment && navShouldApplyPosHold()) {
         // Can only allow pilot to set the new heading if doing PH, during RTH copter will target itself to home
-        if (navShouldApplyPosHold()) {
-            posControl.desiredState.yaw = posControl.actualState.yaw;
-        }
-
+        posControl.desiredState.yaw = posControl.actualState.yaw;
         posControl.flags.isAdjustingHeading = true;
     }
     else {
@@ -267,24 +233,23 @@ static void adjustHeadingFromRCInput_MC()
 void applyMulticopterHeadingController(void)
 {
     if (posControl.flags.headingNewData) {
+        adjustHeadingFromRCInput_MC();
+
 #if defined(NAV_BLACKBOX)
         navDesiredHeading = constrain(lrintf(posControl.desiredState.yaw), -32678, 32767);
 #endif
-
-        calculateHeadingAdjustment_MC();
-        adjustHeadingFromRCInput_MC();
 
         // Indicate that information is no longer usable
         posControl.flags.headingNewData = 0;
     }
 
-    // Control yaw by NAV PID
-    rcCommand[YAW] = constrain(posControl.rcAdjustment[YAW], -500, 500);
+    // Control yaw my magHold PID
+    magHold = CENTIDEGREES_TO_DEGREES(posControl.desiredState.yaw);
 }
 
 void resetMulticopterHeadingController(void)
 {
-    posControl.rcAdjustment[YAW] = 0;
+    magHold = CENTIDEGREES_TO_DEGREES(posControl.actualState.yaw);
 }
 
 /*-----------------------------------------------------------
@@ -412,7 +377,6 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
     velErrorX = posControl.desiredState.vel.V.X - posControl.actualState.vel.V.X;
     velErrorY = posControl.desiredState.vel.V.Y - posControl.actualState.vel.V.Y;
 
-#if 1
     // Calculate XY-acceleration limit according to velocity error limit
     float accelLimitX, accelLimitY;
     float velErrorMagnitude = sqrtf(sq(velErrorX) + sq(velErrorY));
@@ -440,34 +404,6 @@ static void updatePositionAccelController_MC(uint32_t deltaMicros, float maxAcce
     // Thus we don't need to do anything else with calculated acceleration
     newAccelX = navPidApply2(velErrorX, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitXMin, accelLimitXMax);
     newAccelY = navPidApply2(velErrorY, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitYMin, accelLimitYMax);
-#else
-    static bool accelLimitingXY = false;
-
-    newAccelX = navPidApply(velErrorX, US2S(deltaMicros), &posControl.pids.vel[X], accelLimitingXY);
-    newAccelY = navPidApply(velErrorY, US2S(deltaMicros), &posControl.pids.vel[Y], accelLimitingXY);
-
-    // Check if required acceleration exceeds maximum allowed accel
-    float newAccelTotal = sqrtf(sq(newAccelX) + sq(newAccelY));
-
-    // Recalculate acceleration
-    if (newAccelTotal > maxAccelLimit) {
-        accelLimitingXY = true;
-        newAccelX *= maxAccelLimit / newAccelTotal;
-        newAccelY *= maxAccelLimit / newAccelTotal;
-    }
-    else {
-        accelLimitingXY = false;
-    }
-
-    // apply jerk limit of 10 m/s^3 (~60 deg/s)
-    float maxAccelChange = US2S(deltaMicros) * 1000.0f;
-    float accelChangeMagnitude = sqrtf(sq(newAccelX - lastAccelTargetX) + sq(newAccelY - lastAccelTargetY));
-
-    if(accelChangeMagnitude > maxAccelChange) {
-        newAccelX = lastAccelTargetX + (newAccelX - lastAccelTargetX) * (maxAccelChange / accelChangeMagnitude);
-        newAccelY = lastAccelTargetY + (newAccelY - lastAccelTargetY) * (maxAccelChange / accelChangeMagnitude);
-    }
-#endif
 
     // Save last acceleration target
     lastAccelTargetX = newAccelX;
@@ -606,15 +542,6 @@ void applyMulticopterEmergencyLandingController(void)
     rcCommand[PITCH] = 0;
     rcCommand[YAW] = 0;
     rcCommand[THROTTLE] = 1300; // FIXME
-}
-
-/*-----------------------------------------------------------
- * Multicopter-specific automatic parameter update 
- *-----------------------------------------------------------*/
-void updateMulticopterSpecificData(uint32_t currentTime)
-{
-    UNUSED(currentTime);
-    updateHoverThrottle();
 }
 
 #endif  // NAV

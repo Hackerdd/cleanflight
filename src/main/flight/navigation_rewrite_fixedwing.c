@@ -381,12 +381,4 @@ void applyFixedWingEmergencyLandingController(void)
     // TODO
 }
 
-/*-----------------------------------------------------------
- * Fixed-wing-specific automatic parameter update
- *-----------------------------------------------------------*/
-void updateFixedWingSpecificData(uint32_t currentTime)
-{
-    UNUSED(currentTime);
-}
-
 #endif  // NAV

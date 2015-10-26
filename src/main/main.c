@@ -421,8 +421,7 @@ void init(void)
             &currentProfile->pidProfile,
             &currentProfile->rcControlsConfig,
             &masterConfig.rxConfig,
-            &masterConfig.escAndServoConfig,
-            masterConfig.yaw_control_direction
+            &masterConfig.escAndServoConfig
         );
 #endif
     }

@@ -772,7 +772,6 @@ void activateConfig(void)
     navigationUseRcControlsConfig(&currentProfile->rcControlsConfig);
     navigationUseRxConfig(&masterConfig.rxConfig);
     navigationUseEscAndServoConfig(&masterConfig.escAndServoConfig);
-    navigationUseYawControlDirection(masterConfig.yaw_control_direction);
 #endif
 
 #ifdef BARO

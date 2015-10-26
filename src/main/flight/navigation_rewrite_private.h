@@ -161,7 +161,6 @@ typedef struct navigationPIDControllers_s {
     pController_t   pos[XYZ_AXIS_COUNT];
     pidController_t vel[XYZ_AXIS_COUNT];
     pidController_t accz;
-    pController_t   heading;
 
     /* Fixed-wing PIDs */
     pidController_t fw_alt;
@@ -219,7 +218,6 @@ typedef struct {
     pidProfile_t *              pidProfile;
     rxConfig_t *                rxConfig;
     escAndServoConfig_t *       escAndServoConfig;
-    int8_t                      yawControlDirection;
 } navigationPosControl_t;
 
 extern navigationPosControl_t posControl;
@@ -274,7 +272,6 @@ void resetMulticopterPositionController(void);
 void applyMulticopterPositionController(uint32_t currentTime);
 void applyMulticopterEmergencyLandingController(void);
 bool isMulticopterLandingDetected(uint32_t * landingTimer);
-void updateMulticopterSpecificData(uint32_t currentTime);
 
 /* Fixed-wing specific functions */
 void setupFixedWingAltitudeController(void);
@@ -286,4 +283,3 @@ void resetFixedWingPositionController(void);
 void applyFixedWingPositionController(uint32_t currentTime);
 void applyFixedWingEmergencyLandingController(void);
 bool isFixedWingLandingDetected(uint32_t * landingTimer);
-void updateFixedWingSpecificData(uint32_t currentTime);

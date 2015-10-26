@@ -477,16 +477,6 @@ static void applyPositionController(uint32_t currentTime)
     }
 }
 
-static void updatePlatformSpecificData(uint32_t currentTime)
-{
-    if (STATE(FIXED_WING)) {
-        updateFixedWingSpecificData(currentTime);
-    }
-    else {
-        updateMulticopterSpecificData(currentTime);
-    }
-}
-
 /*-----------------------------------------------------------
  * WP controller
  *-----------------------------------------------------------*/
@@ -667,9 +657,6 @@ void applyWaypointNavigationAndAltitudeHold(void)
             applyHeadingController();
         }
     }
-
-    // Update some platform-specific parameters, unknown to position estimator, i.e. hover throttle
-    updatePlatformSpecificData(currentTime);
 
 #if defined(NAV_BLACKBOX)
     if (posControl.flags.isAdjustingPosition)       navFlags |= (1 << 4);
@@ -935,11 +922,6 @@ void navigationUseEscAndServoConfig(escAndServoConfig_t * initialEscAndServoConf
     posControl.escAndServoConfig = initialEscAndServoConfig;
 }
 
-void navigationUseYawControlDirection(uint8_t initialYawControlDirection)
-{
-    posControl.yawControlDirection = initialYawControlDirection;
-}
-
 void navigationUsePIDs(pidProfile_t *initialPidProfile)
 {
     int axis;
@@ -976,17 +958,13 @@ void navigationUsePIDs(pidProfile_t *initialPidProfile)
                                         (float)posControl.pidProfile->I8[PIDALT] / 100.0f,
                                         (float)posControl.pidProfile->D8[PIDALT] / 1000.0f,
                                         500.0);
-
-    // Heading PID (duplicates maghold)
-    navPInit(&posControl.pids.heading, (float)posControl.pidProfile->P8[PIDMAG] / 30.0f);
 }
 
 void navigationInit(navConfig_t *initialnavConfig,
                     pidProfile_t *initialPidProfile,
                     rcControlsConfig_t *initialRcControlsConfig,
                     rxConfig_t * initialRxConfig,
-                    escAndServoConfig_t * initialEscAndServoConfig,
-                    uint8_t initialYawControlDirection)
+                    escAndServoConfig_t * initialEscAndServoConfig)
 {
     /* Initial state */
     posControl.enabled = 0;
@@ -1005,7 +983,6 @@ void navigationInit(navConfig_t *initialnavConfig,
     navigationUseRcControlsConfig(initialRcControlsConfig);
     navigationUseRxConfig(initialRxConfig);
     navigationUseEscAndServoConfig(initialEscAndServoConfig);
-    navigationUseYawControlDirection(initialYawControlDirection);
 }
 
 /*-----------------------------------------------------------
