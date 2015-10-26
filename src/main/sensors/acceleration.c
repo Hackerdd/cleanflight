@@ -147,7 +147,7 @@ void performAcclerationCalibration(void)
             accSample16[Y] = accSamples[axis][Y] / CALIBRATING_ACC_CYCLES - accZero->raw[Y];
             accSample16[Z] = accSamples[axis][Z] / CALIBRATING_ACC_CYCLES - accZero->raw[Z];
 
-            sensorCalibrationPushSampleForScaleCalculation(&calState, axisIndex / 2, accSample16, acc_1G);
+            sensorCalibrationPushSampleForScaleCalculation(&calState, axis / 2, accSample16, acc_1G);
         }
 
         sensorCalibrationSolveForScale(&calState, accTmp);
