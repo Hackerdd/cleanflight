@@ -92,11 +92,13 @@ typedef struct filterWithBufferState_s {
 typedef struct {
     float XtY[4];
     float XtX[4][4];
-} offsetCalibrationState_t;
+} sensorCalibrationState_t;
 
-void offsetCalibrationResetState(offsetCalibrationState_t * state);
-void offsetCalibrationPushSample(offsetCalibrationState_t * state, int16_t sample[3]);
-void offsetCalibrationCalculateOffset(offsetCalibrationState_t * state, float offset[3]);
+void sensorCalibrationResetState(sensorCalibrationState_t * state);
+void sensorCalibrationPushSampleForOffsetCalculation(sensorCalibrationState_t * state, int16_t sample[3]);
+void sensorCalibrationPushSampleForScaleCalculation(sensorCalibrationState_t * state, int axis, int16_t sample[3], int target);
+void sensorCalibrationSolveForOffset(sensorCalibrationState_t * state, float result[3]);
+void sensorCalibrationSolveForScale(sensorCalibrationState_t * state, float result[3]);
 
 int32_t applyDeadband(int32_t value, int32_t deadband);
 

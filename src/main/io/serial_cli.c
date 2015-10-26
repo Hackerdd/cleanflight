@@ -577,6 +577,10 @@ const clivalue_t valueTable[] = {
     { "acczero_x",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accZero.raw[X], -32768, 32767 },
     { "acczero_y",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accZero.raw[Y], -32768, 32767 },
     { "acczero_z",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accZero.raw[Z], -32768, 32767 },
+
+    { "accgain_x",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accGain.raw[X], 1, 8192 },
+    { "accgain_y",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accGain.raw[Y], 1, 8192 },
+    { "accgain_z",                  VAR_INT16  | MASTER_VALUE, &masterConfig.accGain.raw[Z], 1, 8192 },
 };
 
 #define VALUE_COUNT (sizeof(valueTable) / sizeof(clivalue_t))

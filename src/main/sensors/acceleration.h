@@ -43,3 +43,4 @@ bool isAccelerationCalibrationComplete(void);
 void accSetCalibrationCycles(uint16_t calibrationCyclesRequired);
 void updateAccelerationReadings(void);
 void setAccelerationZero(flightDynamicsTrims_t * accZeroToUse);
+void setAccelerationGain(flightDynamicsTrims_t * accGainToUse);

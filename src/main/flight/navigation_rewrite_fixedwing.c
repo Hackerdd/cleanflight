@@ -112,7 +112,6 @@ static void updateAltitudeVelocityAndPitchController_FW(uint32_t deltaMicros)
 
 #if defined(NAV_BLACKBOX)
     navDesiredVelocity[Z] = constrain(lrintf(posControl.desiredState.vel.V.Z), -32678, 32767);
-    navLatestPositionError[Z] = constrain(lrintf(altitudeError), -32678, 32767);
     navTargetPosition[Z] = constrain(lrintf(posControl.desiredState.pos.V.Z), -32678, 32767);
 #endif
 }

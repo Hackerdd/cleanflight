@@ -254,19 +254,19 @@ void processRcStickPositions(rxConfig_t *rxConfig, throttleStatus_e throttleStat
 
     // Accelerometer Trim
     if (rcSticks == THR_HI + YAW_CE + PIT_HI + ROL_CE) {
-        applyAndSaveBoardAlignmentDelta(0, 2);
-        rcDelayCommand = 10;
-        return;
-    } else if (rcSticks == THR_HI + YAW_CE + PIT_LO + ROL_CE) {
         applyAndSaveBoardAlignmentDelta(0, -2);
         rcDelayCommand = 10;
         return;
+    } else if (rcSticks == THR_HI + YAW_CE + PIT_LO + ROL_CE) {
+        applyAndSaveBoardAlignmentDelta(0, 2);
+        rcDelayCommand = 10;
+        return;
     } else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_HI) {
-        applyAndSaveBoardAlignmentDelta(2, 0);
+        applyAndSaveBoardAlignmentDelta(-2, 0);
         rcDelayCommand = 10;
         return;
     } else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_LO) {
-        applyAndSaveBoardAlignmentDelta(-2, 0);
+        applyAndSaveBoardAlignmentDelta(2, 0);
         rcDelayCommand = 10;
         return;
     }

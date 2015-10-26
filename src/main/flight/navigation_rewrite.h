@@ -188,13 +188,13 @@ extern int16_t       GPS_directionToHome;       // direction to home point in de
 
 #if defined(BLACKBOX)
 extern int16_t navCurrentMode;
-extern int32_t navLatestActualPosition[3];
 extern int16_t navActualVelocity[3];
 extern int16_t navDesiredVelocity[3];
-extern int16_t navLatestPositionError[3];
 extern int16_t navActualHeading;
 extern int16_t navDesiredHeading;
 extern int16_t navTargetPosition[3];
+extern int32_t navLatestActualPosition[3];
+extern int16_t navAccelNEU[3];
 extern int16_t navDebug[4];
 extern uint16_t navFlags;
 #define NAV_BLACKBOX_DEBUG(x,y) navDebug[x] = constrain((y), -32678, 32767)

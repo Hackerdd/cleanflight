@@ -57,8 +57,9 @@ typedef struct master_t {
     uint8_t baro_hardware;                  // Barometer hardware to use
 
     uint16_t max_angle_inclination;         // max inclination allowed in angle (level) mode. default 500 (50 degrees).
-    flightDynamicsTrims_t accZero;
-    flightDynamicsTrims_t magZero;
+    flightDynamicsTrims_t accZero;          // Accelerometer offset
+    flightDynamicsTrims_t accGain;          // Accelerometer gain to read exactly 1G
+    flightDynamicsTrims_t magZero;          // Compass offset
 
     batteryConfig_t batteryConfig;
 

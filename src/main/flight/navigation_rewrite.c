@@ -51,11 +51,11 @@ navigationPosControl_t   posControl;
 int16_t navCurrentMode;
 int16_t navActualVelocity[3];
 int16_t navDesiredVelocity[3];
-int16_t navLatestPositionError[3];
 int16_t navActualHeading;
 int16_t navDesiredHeading;
 int16_t navTargetPosition[3];
 int32_t navLatestActualPosition[3];
+int16_t navAccelNEU[3];
 int16_t navDebug[4];
 uint16_t navFlags;
 #endif
@@ -169,6 +169,12 @@ void updateActualAcceleration(float accX, float accY, float accZ)
     posControl.actualState.acc.V.X = accX;
     posControl.actualState.acc.V.Y = accY;
     posControl.actualState.acc.V.Z = accZ;
+
+#if defined(NAV_BLACKBOX)
+    navAccelNEU[X] = accX;
+    navAccelNEU[Y] = accY;
+    navAccelNEU[Z] = accZ;
+#endif
 }
 
 /*-----------------------------------------------------------
@@ -666,7 +672,6 @@ void applyWaypointNavigationAndAltitudeHold(void)
     updatePlatformSpecificData(currentTime);
 
 #if defined(NAV_BLACKBOX)
-    navFlags = 0;
     if (posControl.flags.isAdjustingPosition)       navFlags |= (1 << 4);
     if (posControl.flags.isAdjustingAltitude)       navFlags |= (1 << 5);
     if (posControl.flags.isAdjustingHeading)        navFlags |= (1 << 6);

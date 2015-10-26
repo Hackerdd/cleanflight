@@ -46,6 +46,7 @@ uint16_t acc_1G = 256;          // this is the 1G measured acceleration.
 uint16_t calibratingA = 0;      // the calibration is done is the main loop. Calibrating decreases at each cycle down to 0, then we enter in a normal mode.
 
 static flightDynamicsTrims_t * accZero;
+static flightDynamicsTrims_t * accGain;
 
 void accSetCalibrationCycles(uint16_t calibrationCyclesRequired)
 {
@@ -67,40 +68,57 @@ bool isOnFirstAccelerationCalibrationCycle(void)
     return calibratingA == CALIBRATING_ACC_CYCLES;
 }
 
-static offsetCalibrationState_t calState;
+static sensorCalibrationState_t calState;
 static bool calibratedAxis[6];
+static int32_t accSamples[6][3];
 static int  calibratedAxisCount = 0;
+
+int getPrimaryAxisIndex(int16_t sample[3])
+{
+    if (ABS(sample[Z]) > ABS(sample[X]) && ABS(sample[Z]) > ABS(sample[Y])) {
+        //Z-axis
+        return (sample[Z] > 0) ? 0 : 1;
+    }
+    else if (ABS(sample[X]) > ABS(sample[Y]) && ABS(sample[X]) > ABS(sample[Z])) {
+        //X-axis
+        return (sample[X] > 0) ? 2 : 3;
+    }
+    else if (ABS(sample[Y]) > ABS(sample[X]) && ABS(sample[Y]) > ABS(sample[Z])) {
+        //Y-axis
+        return (sample[Y] > 0) ? 4 : 5;
+    }
+    else 
+        return -1;
+}
 
 void performAcclerationCalibration(void)
 {
-    int axisIndex = 0;
+    int axisIndex = getPrimaryAxisIndex(accADC);
     uint8_t axis;
 
-    if (ABS(accADC[Z]) > ABS(accADC[X]) && ABS(accADC[Z]) > ABS(accADC[Y])) {
-        //Z-axis
-        axisIndex = (accADC[Z] > 0) ? 0 : 1;
-    }
-    else if (ABS(accADC[X]) > ABS(accADC[Y]) && ABS(accADC[X]) > ABS(accADC[Z])) {
-        //X-axis
-        axisIndex = (accADC[X] > 0) ? 2 : 3;
-    }
-    else if (ABS(accADC[Y]) > ABS(accADC[X]) && ABS(accADC[Y]) > ABS(accADC[Z])) {
-        //Y-axis
-        axisIndex = (accADC[Y] > 0) ? 4 : 5;
+    // Check if sample is usable
+    if (axisIndex < 0) {
+        return;
     }
 
     // Top-up and first calibration cycle, reset everything
     if (axisIndex == 0 && isOnFirstAccelerationCalibrationCycle()) {
         for (axis = 0; axis < 6; axis++) {
             calibratedAxis[axis] = false;
+            accSamples[axis][X] = 0;
+            accSamples[axis][Y] = 0;
+            accSamples[axis][Z] = 0;
         }
 
         calibratedAxisCount = 0;
-        offsetCalibrationResetState(&calState);
+        sensorCalibrationResetState(&calState);
     }
 
     if (!calibratedAxis[axisIndex]) {
-        offsetCalibrationPushSample(&calState, accADC);
+        sensorCalibrationPushSampleForOffsetCalculation(&calState, accADC);
+        accSamples[axisIndex][X] += accADC[X];
+        accSamples[axisIndex][Y] += accADC[Y];
+        accSamples[axisIndex][Z] += accADC[Z];
 
         if (isOnFinalAccelerationCalibrationCycle()) {
             calibratedAxis[axisIndex] = true;
@@ -111,11 +129,31 @@ void performAcclerationCalibration(void)
     }
 
     if (calibratedAxisCount == 6) {
-        float accZerof[3];
-        offsetCalibrationCalculateOffset(&calState, accZerof);
+        float accTmp[3];
+        int16_t accSample16[3];
+
+        /* Calculate offset */
+        sensorCalibrationSolveForOffset(&calState, accTmp);
 
         for (axis = 0; axis < 3; axis++) {
-            accZero->raw[axis] = lrintf(accZerof[axis]);
+            accZero->raw[axis] = lrintf(accTmp[axis]);
+        }
+
+        /* Not we can offset our accumulated averages samples and calculate scale factors and calculate gains */
+        sensorCalibrationResetState(&calState);
+
+        for (axis = 0; axis < 6; axis++) {
+            accSample16[X] = accSamples[axis][X] / CALIBRATING_ACC_CYCLES - accZero->raw[X];
+            accSample16[Y] = accSamples[axis][Y] / CALIBRATING_ACC_CYCLES - accZero->raw[Y];
+            accSample16[Z] = accSamples[axis][Z] / CALIBRATING_ACC_CYCLES - accZero->raw[Z];
+
+            sensorCalibrationPushSampleForScaleCalculation(&calState, axisIndex / 2, accSample16, acc_1G);
+        }
+
+        sensorCalibrationSolveForScale(&calState, accTmp);
+
+        for (axis = 0; axis < 3; axis++) {
+            accGain->raw[axis] = lrintf(accTmp[axis] * 4096);
         }
 
         saveConfigAndNotify();
@@ -124,11 +162,11 @@ void performAcclerationCalibration(void)
     calibratingA--;
 }
 
-void applyAccelerationZero(flightDynamicsTrims_t * accZero)
+void applyAccelerationZero(flightDynamicsTrims_t * accZero, flightDynamicsTrims_t * accGain)
 {
-    accADC[X] -= accZero->raw[X];
-    accADC[Y] -= accZero->raw[Y];
-    accADC[Z] -= accZero->raw[Z];
+    accADC[X] = (accADC[X] - accZero->raw[X]) * accGain->raw[X] / 4096;
+    accADC[Y] = (accADC[Y] - accZero->raw[Y]) * accGain->raw[Y] / 4096;
+    accADC[Z] = (accADC[Z] - accZero->raw[Z]) * accGain->raw[Z] / 4096;
 }
 
 void updateAccelerationReadings(void)
@@ -142,10 +180,15 @@ void updateAccelerationReadings(void)
     }
 
     alignSensors(accADC, accADC, accAlign);
-    applyAccelerationZero(accZero);
+    applyAccelerationZero(accZero, accGain);
 }
 
 void setAccelerationZero(flightDynamicsTrims_t * accZeroToUse)
 {
     accZero = accZeroToUse;
+}
+
+void setAccelerationGain(flightDynamicsTrims_t * accGainToUse)
+{
+    accGain = accGainToUse;
 }

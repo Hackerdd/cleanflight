@@ -265,7 +265,7 @@ int32_t quickMedianFilter5(int32_t * v)
 
     QMF_SORT(p[0], p[1]); QMF_SORT(p[3], p[4]); QMF_SORT(p[0], p[3]);
     QMF_SORT(p[1], p[4]); QMF_SORT(p[1], p[2]); QMF_SORT(p[2], p[3]);
-    QMF_SORT(p[1], p[2]); 
+    QMF_SORT(p[1], p[2]);
     return p[2];
 }
 
@@ -399,7 +399,7 @@ float filterWithBufferApply_Derivative(filterWithBufferState_t * state)
  * Initial implementation by @HaukeRa
  * Modified to be re-usable by @DigitalEntity
  */
-void offsetCalibrationResetState(offsetCalibrationState_t * state)
+void sensorCalibrationResetState(sensorCalibrationState_t * state)
 {
 	for(int i = 0; i < 4; i++){
 		for(int j = 0; j < 4; j++){
@@ -410,7 +410,7 @@ void offsetCalibrationResetState(offsetCalibrationState_t * state)
 	}
 }
 
-void offsetCalibrationPushSample(offsetCalibrationState_t * state, int16_t sample[3])
+void sensorCalibrationPushSampleForOffsetCalculation(sensorCalibrationState_t * state, int16_t sample[3])
 {
 	state->XtX[0][0] += (float)sample[0] * sample[0];
 	state->XtX[0][1] += (float)sample[0] * sample[1];
@@ -439,7 +439,20 @@ void offsetCalibrationPushSample(offsetCalibrationState_t * state, int16_t sampl
 	state->XtY[3] += squareSum;
 }
 
-static void offsetCalibration_gaussLR(float mat[4][4]) {
+void sensorCalibrationPushSampleForScaleCalculation(sensorCalibrationState_t * state, int axis, int16_t sample[3], int target)
+{
+    for (int i = 0; i < 3; i++) {
+        float scaledSample = (float)sample[i] / (float)target;
+        state->XtX[axis][i] += scaledSample * scaledSample;
+        state->XtX[3][i] += scaledSample * scaledSample;
+    }
+
+    state->XtX[axis][3] += 1;
+    state->XtY[axis] += 1;
+    state->XtY[3] += 1;
+}
+
+static void sensorCalibration_gaussLR(float mat[4][4]) {
 	uint8_t n = 4;
 	int i, j, k;
 	for (i = 0; i < 4; i++) {
@@ -459,7 +472,7 @@ static void offsetCalibration_gaussLR(float mat[4][4]) {
 	}
 }
 
-static void offsetCalibration_ForwardSubstitution(float LR[4][4], float y[4], float b[4]) {
+void sensorCalibration_ForwardSubstitution(float LR[4][4], float y[4], float b[4]) {
 	int i, k;
 	for (i = 0; i < 4; ++i) {
 		y[i] = b[i];
@@ -470,7 +483,7 @@ static void offsetCalibration_ForwardSubstitution(float LR[4][4], float y[4], fl
 	}
 }
 
-static void offsetCalibration_BackwardSubstitution(float LR[4][4], float x[4], float y[4]) {
+void sensorCalibration_BackwardSubstitution(float LR[4][4], float x[4], float y[4]) {
 	int i, k;
 	for (i = 3 ; i >= 0; --i) {
 		x[i] = y[i];
@@ -483,27 +496,36 @@ static void offsetCalibration_BackwardSubstitution(float LR[4][4], float x[4], f
 
 // solve linear equation
 // https://en.wikipedia.org/wiki/Gaussian_elimination
-static void offsetCalibration_SolveLGS(float A[4][4], float x[4], float b[4]) {
+static void sensorCalibration_SolveLGS(float A[4][4], float x[4], float b[4]) {
 	int i;
 	float y[4];
 
-	offsetCalibration_gaussLR(A);
+	sensorCalibration_gaussLR(A);
 
 	for (i = 0; i < 4; ++i) {
 		y[i] = 0;
 	}
 
-	offsetCalibration_ForwardSubstitution(A, y, b);
-	offsetCalibration_BackwardSubstitution(A, x, y);
+	sensorCalibration_ForwardSubstitution(A, y, b);
+	sensorCalibration_BackwardSubstitution(A, x, y);
 }
 
-void offsetCalibrationCalculateOffset(offsetCalibrationState_t * state, float offset[3])
+void sensorCalibrationSolveForOffset(sensorCalibrationState_t * state, float result[3])
 {
-    int i;
     float beta[4];
-    offsetCalibration_SolveLGS(state->XtX, beta, state->XtY);
+    sensorCalibration_SolveLGS(state->XtX, beta, state->XtY);
 
-    for (i = 0; i < 3; i++) {
-        offset[i] = beta[i] / 2;
+    for (int i = 0; i < 3; i++) {
+        result[i] = beta[i] / 2;
+    }
+}
+
+void sensorCalibrationSolveForScale(sensorCalibrationState_t * state, float result[3])
+{
+    float beta[4];
+    sensorCalibration_SolveLGS(state->XtX, beta, state->XtY);
+
+    for (int i = 0; i < 3; i++) {
+        result[i] = sqrtf(beta[i]);
     }
 }

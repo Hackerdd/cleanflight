@@ -131,13 +131,17 @@ static uint32_t activeFeaturesLatch = 0;
 static uint8_t currentControlRateProfileIndex = 0;
 controlRateConfig_t *currentControlRateProfile;
 
-static const uint8_t EEPROM_CONF_VERSION = 107;
+static const uint8_t EEPROM_CONF_VERSION = 108;
 
-static void resetAccelerometerTrims(flightDynamicsTrims_t *accelerometerTrims)
+static void resetAccelerometerTrims(flightDynamicsTrims_t * accZero, flightDynamicsTrims_t * accGain)
 {
-    accelerometerTrims->values.pitch = 0;
-    accelerometerTrims->values.roll = 0;
-    accelerometerTrims->values.yaw = 0;
+    accZero->values.pitch = 0;
+    accZero->values.roll = 0;
+    accZero->values.yaw = 0;
+
+    accGain->values.pitch = 4096;
+    accGain->values.roll = 4096;
+    accGain->values.yaw = 4096;
 }
 
 static void resetPidProfile(pidProfile_t *pidProfile)
@@ -447,7 +451,7 @@ static void resetConf(void)
     masterConfig.dcm_ki = 30;                   // 0.003 * 10000
     masterConfig.gyro_lpf = 42;                 // supported by all gyro drivers now. In case of ST gyro, will default to 32Hz instead
 
-    resetAccelerometerTrims(&masterConfig.accZero);
+    resetAccelerometerTrims(&masterConfig.accZero, &masterConfig.accGain);
 
     resetSensorAlignment(&masterConfig.sensorAlignmentConfig);
 
@@ -742,6 +746,7 @@ void activateConfig(void)
 
     useFailsafeConfig(&masterConfig.failsafeConfig);
     setAccelerationZero(&masterConfig.accZero);
+    setAccelerationGain(&masterConfig.accGain);
 
     mixerUseConfigs(
 #ifdef USE_SERVOS

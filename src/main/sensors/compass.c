@@ -59,7 +59,7 @@ void compassInit(void)
     magInit = 1;
 }
 
-static offsetCalibrationState_t calState;
+static sensorCalibrationState_t calState;
 
 #define COMPASS_UPDATE_FREQUENCY_10HZ   (1000 * 100)
 
@@ -84,7 +84,7 @@ void updateCompass(flightDynamicsTrims_t *magZero)
             magPrev[axis] = 0;
         }
 
-        offsetCalibrationResetState(&calState);
+        sensorCalibrationResetState(&calState);
         DISABLE_STATE(CALIBRATE_MAG);
     }
 
@@ -108,7 +108,7 @@ void updateCompass(flightDynamicsTrims_t *magZero)
 
             // sqrtf(diffMag / avgMag) is a rough approximation of tangent of angle between magADC and magPrev. tan(8 deg) = 0.14
             if ((avgMag > 0.01f) && ((diffMag / avgMag) > (0.14f * 0.14f))) {
-                offsetCalibrationPushSample(&calState, magADC);
+                sensorCalibrationPushSampleForOffsetCalculation(&calState, magADC);
 
                 for (axis = 0; axis < 3; axis++) {
                     magPrev[axis] = magADC[axis];
@@ -116,7 +116,7 @@ void updateCompass(flightDynamicsTrims_t *magZero)
             }
         } else {
             float magZerof[3];
-            offsetCalibrationCalculateOffset(&calState, magZerof);
+            sensorCalibrationSolveForOffset(&calState, magZerof);
 
             for (axis = 0; axis < 3; axis++) {
                 magZero->raw[axis] = lrintf(magZerof[axis]);
