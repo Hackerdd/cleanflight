@@ -88,7 +88,6 @@ static void updateAltitudeVelocityAndPitchController_FW(uint32_t deltaMicros)
     // On a fixed wing we might not have a reliable climb rate source (if no BARO available), so we can't apply PID controller to
     // velocity error. We use PID controller on altitude error and calculate desired pitch angle from desired climb rate and forward velocity
 
-    float altitudeError = posControl.desiredState.pos.V.Z - posControl.actualState.pos.V.Z;
     float forwardVelocity = sqrtf(sq(posControl.actualState.vel.V.X) + sq(posControl.actualState.vel.V.Y));
     forwardVelocity = MAX(forwardVelocity, 300.0f);   // Limit min velocity for PID controller at about 10 km/h
 
@@ -96,7 +95,7 @@ static void updateAltitudeVelocityAndPitchController_FW(uint32_t deltaMicros)
     float maxVelocityClimb = forwardVelocity * sin_approx(posControl.navConfig->fw_max_climb_angle * RAD);
     float maxVelocityDive = -forwardVelocity * sin_approx(posControl.navConfig->fw_max_dive_angle * RAD);
 
-    posControl.desiredState.vel.V.Z = navPidApply2(altitudeError, US2S(deltaMicros), &posControl.pids.fw_alt, maxVelocityDive, maxVelocityClimb);
+    posControl.desiredState.vel.V.Z = navPidApply2(posControl.desiredState.pos.V.Z, posControl.actualState.pos.V.Z, US2S(deltaMicros), &posControl.pids.fw_alt, maxVelocityDive, maxVelocityClimb);
     posControl.desiredState.vel.V.Z = navApplyFilter(posControl.desiredState.vel.V.Z, NAV_FW_VEL_CUTOFF_FREQENCY_HZ, US2S(deltaMicros), &velzFilterState);
 
     // Calculate pitch angle (plane should be trimmed to horizontal flight with PITCH=0
@@ -295,7 +294,7 @@ static void updatePositionHeadingController_FW(uint32_t deltaMicros)
     int32_t virtualTargetBearing = calculateBearingToDestination(&virtualDesiredPosition);
 
     // Calculate NAV heading error
-    int32_t headingError = wrap_18000(posControl.actualState.yaw - virtualTargetBearing);
+    int32_t headingError = wrap_18000(virtualTargetBearing - posControl.actualState.yaw);
 
     // Forced turn direction
     if (ABS(headingError) > 9000) {
@@ -303,7 +302,7 @@ static void updatePositionHeadingController_FW(uint32_t deltaMicros)
     }
 
     // Input error in (deg*100), output pitch angle (deg*100)
-    float rollAdjustment = navPidApply2(headingError, US2S(deltaMicros), &posControl.pids.fw_nav,
+    float rollAdjustment = navPidApply2(posControl.actualState.yaw + headingError, posControl.actualState.yaw, US2S(deltaMicros), &posControl.pids.fw_nav,
                                         -DEGREES_TO_CENTIDEGREES(posControl.navConfig->fw_max_bank_angle),
                                          DEGREES_TO_CENTIDEGREES(posControl.navConfig->fw_max_bank_angle));
 

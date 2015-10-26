@@ -92,14 +92,15 @@ float navApplyFilter(float input, float fCut, float dT, float * state)
 // Implementation of PID with back-calculation I-term anti-windup
 // Control System Design, Lecture Notes for ME 155A by Karl Johan Åström (p.228)
 // http://www.cds.caltech.edu/~murray/courses/cds101/fa02/caltech/astrom-ch6.pdf
-float navPidApply2(float error, float dt, pidController_t *pid, float outMin, float outMax)
+float navPidApply2(float setpoint, float measurement, float dt, pidController_t *pid, float outMin, float outMax)
 {
     float newProportional, newDerivative;
+    float error = setpoint - measurement;
 
     newProportional = error * pid->param.kP;
 
-    newDerivative = (error - pid->last_error) / dt;
-    pid->last_error = error;
+    newDerivative = (measurement - pid->last_input) / dt;
+    pid->last_input = measurement;
     if (posControl.navConfig->dterm_cut_hz)
         newDerivative = pid->param.kD * navApplyFilter(newDerivative, posControl.navConfig->dterm_cut_hz, dt, &pid->dterm_filter_state);
     else
@@ -131,7 +132,7 @@ float navPidApply2(float error, float dt, pidController_t *pid, float outMin, fl
 void navPidReset(pidController_t *pid)
 {
     pid->integrator = 0;
-    pid->last_error = 0;
+    pid->last_input = 0;
     pid->pterm_filter_state = 0;
     pid->dterm_filter_state = 0;
 }
