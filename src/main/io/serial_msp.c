@@ -83,6 +83,7 @@
 #endif
 
 #include "serial_msp.h"
+#include "serial_msp_param.h"
 
 static serialPort_t *mspSerialPort;
 
@@ -294,6 +295,10 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 #define MSP_SET_NAV_CONFIG       215    //in message          Sets nav config parameters - write to the eeprom
 
 // #define MSP_BIND                 240    //in message          no param
+
+#define MSP_PARAM                247    //out message         param number in the payload, return mspParamProtocolData_t structure
+#define MSP_PARAM_EX             248    //out message         param group and index in the payload, return mspParamProtocolData_t structure
+#define MSP_SET_PARAM            249    //in message          mspParamProtocolData_t structure
 
 #define MSP_EEPROM_WRITE         250    //in message          no param
 
@@ -1251,7 +1256,6 @@ static bool processOutCommand(uint8_t cmdMSP)
     case MSP_DATAFLASH_READ:
         {
             uint32_t readAddress = read32();
-
             serializeDataflashReadReply(readAddress, 128);
         }
         break;
@@ -1263,6 +1267,35 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize8(buildDate[i]); // MMM DD YYYY as ascii, MMM = Jan/Feb... etc
         serialize32(0); // future exp
         serialize32(0); // future exp
+        break;
+
+    case MSP_PARAM:
+        {
+            paramProtocolData_t paramData;
+            uint16_t paramIndex = read16();
+            uint8_t  arrayIndex = read8();
+            mspGetParamByIndex(paramIndex, arrayIndex, &paramData);
+            
+            headSerialReply(sizeof(paramData));
+            for (unsigned i = 0; i < sizeof(paramData); i++) {
+                serialize8(((uint8_t *)&paramData)[i]);
+            }
+        }
+        break;
+
+    case MSP_PARAM_EX:
+        {
+            paramProtocolData_t paramData;
+            uint8_t  parapGroup = read8();
+            uint16_t paramId = read16();
+            uint8_t  arrayIndex = read8();
+            mspGetParamByGroupAndId(parapGroup, paramId, arrayIndex, &paramData);
+
+            headSerialReply(sizeof(paramData));
+            for (unsigned i = 0; i < sizeof(paramData); i++) {
+                serialize8(((uint8_t *)&paramData)[i]);
+            }
+        }
         break;
 
     default:

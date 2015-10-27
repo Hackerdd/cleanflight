@@ -241,6 +241,7 @@ COMMON_SRC = build_config.c \
 		   io/serial.c \
 		   io/serial_cli.c \
 		   io/serial_msp.c \
+           io/serial_msp_param.c \
 		   io/statusindicator.c \
 		   rx/rx.c \
 		   rx/pwm.c \
