@@ -153,6 +153,8 @@ static void cliFlashRead(char *cmdline);
 static void cliUSB1Wire(char *cmdline);
 #endif
 
+static void cliCopyProfile(char *cmdline);
+
 // buffer
 static char cliBuffer[48];
 static uint32_t bufferIndex = 0;
@@ -295,6 +297,7 @@ const clicmd_t cmdTable[] = {
 #endif
     CLI_COMMAND_DEF("status", "show status", NULL, cliStatus),
     CLI_COMMAND_DEF("version", "show version", NULL, cliVersion),
+    CLI_COMMAND_DEF("copyprofile", "copy current profile to another", "[<index>]", cliCopyProfile),
 };
 #define CMD_COUNT (sizeof(cmdTable) / sizeof(clicmd_t))
 
@@ -2342,6 +2345,20 @@ static void cliVersion(char *cmdline)
         buildTime,
         shortGitRevision
     );
+}
+
+static void cliCopyProfile(char *cmdline)
+{
+    int i;
+    if (isEmpty(cmdline)) {
+        cliPrint("Please specify a profile to copy to\r\n");
+        return;
+    } else {
+        i = atoi(cmdline);
+	printf("Copying current profile to Profile %d\r\n", i);
+	i--;
+        copyCurrentProfileToProfileSlot(i);
+    }
 }
 
 void cliProcess(void)

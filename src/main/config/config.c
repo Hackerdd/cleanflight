@@ -1058,3 +1058,9 @@ uint32_t featureMask(void)
     return masterConfig.enabledFeatures;
 }
 
+void copyCurrentProfileToProfileSlot(uint8_t profileSlotIndex)
+{
+    memcpy(&masterConfig.profile[profileSlotIndex], currentProfile, sizeof(profile_t));
+    writeEEPROM();
+}
+
