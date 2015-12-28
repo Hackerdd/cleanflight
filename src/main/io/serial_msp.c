@@ -1273,8 +1273,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         {
             paramProtocolData_t paramData;
             uint16_t paramIndex = read16();
-            uint8_t  arrayIndex = read8();
-            mspGetParamByIndex(paramIndex, arrayIndex, &paramData);
+            mspGetParamByIndex(paramIndex, &paramData);
             
             headSerialReply(sizeof(paramData));
             for (unsigned i = 0; i < sizeof(paramData); i++) {
@@ -1288,8 +1287,7 @@ static bool processOutCommand(uint8_t cmdMSP)
             paramProtocolData_t paramData;
             uint8_t  parapGroup = read8();
             uint16_t paramId = read16();
-            uint8_t  arrayIndex = read8();
-            mspGetParamByGroupAndId(parapGroup, paramId, arrayIndex, &paramData);
+            mspGetParamByGroupAndId(parapGroup, paramId, &paramData);
 
             headSerialReply(sizeof(paramData));
             for (unsigned i = 0; i < sizeof(paramData); i++) {

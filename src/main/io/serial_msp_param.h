@@ -46,15 +46,29 @@ enum {
         RC_INPUT_FILTERING_MODE = 0x0007,
 
     GROUP_DRIVE = 0x03,
-        DRV_MIN_THROTTLE        = 0x0001,
-        DRV_MAX_THROTTLE        = 0x0002,
-        DRV_MIN_COMMAND         = 0x0003,
+        DRV_MIN_THROTTLE        = 0x0000,
+        DRV_MAX_THROTTLE        = 0x0001,
+        DRV_MIN_COMMAND         = 0x0002,
+
+    GROUP_MMIX = 0x04,
+        MMIX_MOTOR_0            = 0x0000,
+        MMIX_MOTOR_1            = 0x0001,
+        MMIX_MOTOR_2            = 0x0002,
+        MMIX_MOTOR_3            = 0x0004,
+        MMIX_MOTOR_4            = 0x0005,
+        MMIX_MOTOR_5            = 0x0006,
+        MMIX_MOTOR_6            = 0x0007,
+        MMIX_MOTOR_7            = 0x0008,
+        MMIX_MOTOR_8            = 0x0009,
+        MMIX_MOTOR_9            = 0x000A,
+        MMIX_MOTOR_10           = 0x000B,
+        MMIX_MOTOR_11           = 0x000C,
 
     GROUP_ERROR = 0xFF,
         ERR_PARAM               = 0xFFFF,
 } paramGroupAndId_e;
 
-typedef union {
+typedef union __attribute__((packed)) {
     uint8_t  uint8_value;
     int8_t   int8_value;
     uint16_t uint16_value;
@@ -65,17 +79,16 @@ typedef union {
 
 typedef struct __attribute__((packed)) {
     uint16_t            param_count;   // allow to get all params by index one by one
+    uint16_t            param_index;   // allow to get all params by index one by one
     uint8_t             group_id;      // param group
     uint16_t            param_id;      // param index within group
     uint8_t             data_type;     // data type
-    uint8_t             array_index;   // current param index for array parameters (profile, aux, servo, etc)
-    uint8_t             array_count;   // total item count for array parameters (profile, aux, servo, etc)
-    packedParamValue_t  value;         // raw packed value
+    packedParamValue_t  value[8];      // raw packed value
     int32_t             value_min;     // min value (int)
     int32_t             value_max;     // max value (int)
 } paramProtocolData_t;
 
-bool mspGetParamByIndex(uint16_t tableIndex, uint8_t arrayIndex, paramProtocolData_t * data);
+bool mspGetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data);
 bool mspSetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data);
-bool mspGetParamByGroupAndId(uint8_t group_id, uint16_t param_id, uint8_t arrayIndex, paramProtocolData_t * data);
+bool mspGetParamByGroupAndId(uint8_t group_id, uint16_t param_id, paramProtocolData_t * data);
 bool mspSetParamByGroupAndId(paramProtocolData_t * data);
