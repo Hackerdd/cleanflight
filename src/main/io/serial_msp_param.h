@@ -69,6 +69,14 @@ enum {
 } paramGroupAndId_e;
 
 typedef union __attribute__((packed)) {
+    uint16_t    param_count;   // allow to get all params by index one by one
+    uint16_t    param_index;   // allow to get all params by index one by one
+    uint8_t     group_id;      // param group
+    uint16_t    param_id;      // param index within group
+    uint8_t     data_type;     // data type
+} paramProtocolDataDescriptor_t;
+
+typedef union __attribute__((packed)) {
     uint8_t  uint8_value;
     int8_t   int8_value;
     uint16_t uint16_value;
@@ -78,8 +86,6 @@ typedef union __attribute__((packed)) {
 } packedParamValue_t;
 
 typedef struct __attribute__((packed)) {
-    uint16_t            param_count;   // allow to get all params by index one by one
-    uint16_t            param_index;   // allow to get all params by index one by one
     uint8_t             group_id;      // param group
     uint16_t            param_id;      // param index within group
     uint8_t             data_type;     // data type
@@ -92,3 +98,4 @@ bool mspGetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data);
 bool mspSetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data);
 bool mspGetParamByGroupAndId(uint8_t group_id, uint16_t param_id, paramProtocolData_t * data);
 bool mspSetParamByGroupAndId(paramProtocolData_t * data);
+bool mspGetParamDescriptorByIndex(uint16_t tableIndex, paramProtocolDataDescriptor_t * data);

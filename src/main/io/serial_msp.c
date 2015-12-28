@@ -296,8 +296,8 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 
 // #define MSP_BIND                 240    //in message          no param
 
-#define MSP_PARAM                247    //out message         param number in the payload, return mspParamProtocolData_t structure
-#define MSP_PARAM_EX             248    //out message         param group and index in the payload, return mspParamProtocolData_t structure
+#define MSP_PARAM_LIST           247    //out message         param number in the payload, return mspParamProtocolData_t structure
+#define MSP_PARAM                248    //out message         param group and index in the payload, return mspParamProtocolData_t structure
 #define MSP_SET_PARAM            249    //in message          mspParamProtocolData_t structure
 
 #define MSP_EEPROM_WRITE         250    //in message          no param
@@ -1269,11 +1269,11 @@ static bool processOutCommand(uint8_t cmdMSP)
         serialize32(0); // future exp
         break;
 
-    case MSP_PARAM:
+    case MSP_PARAM_LIST:
         {
-            paramProtocolData_t paramData;
+            paramProtocolDataDescriptor_t paramData;
             uint16_t paramIndex = read16();
-            mspGetParamByIndex(paramIndex, &paramData);
+            mspGetParamDescriptorByIndex(paramIndex, &paramData);
             
             headSerialReply(sizeof(paramData));
             for (unsigned i = 0; i < sizeof(paramData); i++) {
@@ -1282,12 +1282,12 @@ static bool processOutCommand(uint8_t cmdMSP)
         }
         break;
 
-    case MSP_PARAM_EX:
+    case MSP_PARAM:
         {
             paramProtocolData_t paramData;
-            uint8_t  parapGroup = read8();
+            uint8_t  paramGroup = read8();
             uint16_t paramId = read16();
-            mspGetParamByGroupAndId(parapGroup, paramId, &paramData);
+            mspGetParamByGroupAndId(paramGroup, paramId, &paramData);
 
             headSerialReply(sizeof(paramData));
             for (unsigned i = 0; i < sizeof(paramData); i++) {
@@ -1742,6 +1742,18 @@ static bool processInCommand(void)
         }
         break;
 #endif
+    case MSP_SET_PARAM:
+        {
+            paramProtocolData_t paramData;
+            for (unsigned i = 0; i < sizeof(paramData); i++) {
+                ((uint8_t *)&paramData)[i] = read8();
+            }
+
+            if (!mspSetParamByGroupAndId(&paramData)) {
+                headSerialError(0);
+            }
+        }
+
     case MSP_REBOOT:
         isRebootScheduled = true;
         break;

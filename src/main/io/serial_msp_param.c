@@ -89,19 +89,7 @@ typedef enum {
     VAR_FLOAT       = 5,
     VAR_INT16_XYZ   = 6,
     VAR_MMIX        = 7,
-
-    /* 2 bits - config value type */
-    MASTER_VALUE =          (0 << 12),
-    PROFILE_VALUE =         (1 << 12),
-    CONTROL_RATE_VALUE =    (2 << 12),
-
-    /* 2 bit - flagss */
-    PARAM_UNUSED =          (1 << 14),
-    PARAM_READ_ONLY =       (1 << 15),
 } paramTypeAndFlags_e;
-
-#define PARAM_DATA_TYPE(v)      ((v) & 0x1F)
-#define PARAM_ARRAY_TYPE(v)     (((v) >> 12) & 0x03)
 
 typedef struct {
     const uint8_t  group_id;
@@ -115,44 +103,44 @@ typedef struct {
 static uint32_t mspHelloValue = 0xAA0055FF;
 
 static const paramValue_t valueTable[] = {
-    { GROUP_SYS,    SYS_HELLO,                  VAR_UINT32      | MASTER_VALUE | PARAM_READ_ONLY, &mspHelloValue, 0, 0 },
+    { GROUP_SYS,    SYS_HELLO,                  VAR_UINT32,     &mspHelloValue, 0, 0 },
 
-    { GROUP_SYS,    SYS_LOOPTIME,               VAR_UINT16      | MASTER_VALUE, &masterConfig.looptime, 0, 9000 },
-    { GROUP_SYS,    SYS_EMF_AVOIDANCE,          VAR_UINT8       | MASTER_VALUE, &masterConfig.emf_avoidance, 0, 1 },
+    { GROUP_SYS,    SYS_LOOPTIME,               VAR_UINT16,     &masterConfig.looptime, 0, 9000 },
+    { GROUP_SYS,    SYS_EMF_AVOIDANCE,          VAR_UINT8,      &masterConfig.emf_avoidance, 0, 1 },
     
-    { GROUP_SENSOR, SEN_ALIGN_GYRO,             VAR_UINT8       | MASTER_VALUE, &masterConfig.sensorAlignmentConfig.gyro_align, 0, 8 },
-    { GROUP_SENSOR, SEN_ALIGN_ACC,              VAR_UINT8       | MASTER_VALUE, &masterConfig.sensorAlignmentConfig.acc_align, 0, 8 },
-    { GROUP_SENSOR, SEN_ALIGN_MAG,              VAR_UINT8       | MASTER_VALUE, &masterConfig.sensorAlignmentConfig.mag_align, 0, 8 },
-    { GROUP_SENSOR, SEN_GYRO_LPF,               VAR_UINT16      | MASTER_VALUE, &masterConfig.gyro_lpf, 0, 256 },
-    { GROUP_SENSOR, SEN_ACCZERO,                VAR_INT16       | MASTER_VALUE, &masterConfig.accZero.raw[0], -32767, 32767 },
-    { GROUP_SENSOR, SEN_ACCGAIN,                VAR_INT16_XYZ   | MASTER_VALUE, &masterConfig.accGain.raw[0], 1, 8192 },
-    { GROUP_SENSOR, SEN_MAGZERO,                VAR_INT16_XYZ   | MASTER_VALUE, &masterConfig.magZero.raw[0], -32767, 32767 },
+    { GROUP_SENSOR, SEN_ALIGN_GYRO,             VAR_UINT8,      &masterConfig.sensorAlignmentConfig.gyro_align, 0, 8 },
+    { GROUP_SENSOR, SEN_ALIGN_ACC,              VAR_UINT8,      &masterConfig.sensorAlignmentConfig.acc_align, 0, 8 },
+    { GROUP_SENSOR, SEN_ALIGN_MAG,              VAR_UINT8,      &masterConfig.sensorAlignmentConfig.mag_align, 0, 8 },
+    { GROUP_SENSOR, SEN_GYRO_LPF,               VAR_UINT16,     &masterConfig.gyro_lpf, 0, 256 },
+    { GROUP_SENSOR, SEN_ACCZERO,                VAR_INT16,      &masterConfig.accZero.raw[0], -32767, 32767 },
+    { GROUP_SENSOR, SEN_ACCGAIN,                VAR_INT16_XYZ,  &masterConfig.accGain.raw[0], 1, 8192 },
+    { GROUP_SENSOR, SEN_MAGZERO,                VAR_INT16_XYZ,  &masterConfig.magZero.raw[0], -32767, 32767 },
     
-    { GROUP_RC,     RC_MID,                     VAR_UINT16      | MASTER_VALUE, &masterConfig.rxConfig.midrc, 1200, 1700 },
-    { GROUP_RC,     RC_MIN_CHECK,               VAR_UINT16      | MASTER_VALUE, &masterConfig.rxConfig.mincheck, PWM_RANGE_ZERO, PWM_RANGE_MAX },
-    { GROUP_RC,     RC_MAX_CHECK,               VAR_UINT16      | MASTER_VALUE, &masterConfig.rxConfig.maxcheck, PWM_RANGE_ZERO, PWM_RANGE_MAX },
-    { GROUP_RC,     RC_RSSI_CHANNEL,            VAR_INT8        | MASTER_VALUE, &masterConfig.rxConfig.rssi_channel, 0, MAX_SUPPORTED_RC_CHANNEL_COUNT },
-    { GROUP_RC,     RC_RSSI_SCALE,              VAR_UINT8       | MASTER_VALUE, &masterConfig.rxConfig.rssi_scale, RSSI_SCALE_MIN, RSSI_SCALE_MAX },
-    { GROUP_RC,     RC_RSSI_PPM_INVERT,         VAR_INT8        | MASTER_VALUE, &masterConfig.rxConfig.rssi_ppm_invert, 0, 1 },
-    { GROUP_RC,     RC_RC_SMOOTHING,            VAR_INT8        | MASTER_VALUE, &masterConfig.rxConfig.rcSmoothing, 0, 1 },
-    { GROUP_RC,     RC_INPUT_FILTERING_MODE,    VAR_INT8        | MASTER_VALUE, &masterConfig.inputFilteringMode, 0, 1 },
+    { GROUP_RC,     RC_MID,                     VAR_UINT16,     &masterConfig.rxConfig.midrc, 1200, 1700 },
+    { GROUP_RC,     RC_MIN_CHECK,               VAR_UINT16,     &masterConfig.rxConfig.mincheck, PWM_RANGE_ZERO, PWM_RANGE_MAX },
+    { GROUP_RC,     RC_MAX_CHECK,               VAR_UINT16,     &masterConfig.rxConfig.maxcheck, PWM_RANGE_ZERO, PWM_RANGE_MAX },
+    { GROUP_RC,     RC_RSSI_CHANNEL,            VAR_INT8,       &masterConfig.rxConfig.rssi_channel, 0, MAX_SUPPORTED_RC_CHANNEL_COUNT },
+    { GROUP_RC,     RC_RSSI_SCALE,              VAR_UINT8,      &masterConfig.rxConfig.rssi_scale, RSSI_SCALE_MIN, RSSI_SCALE_MAX },
+    { GROUP_RC,     RC_RSSI_PPM_INVERT,         VAR_INT8,       &masterConfig.rxConfig.rssi_ppm_invert, 0, 1 },
+    { GROUP_RC,     RC_RC_SMOOTHING,            VAR_INT8,       &masterConfig.rxConfig.rcSmoothing, 0, 1 },
+    { GROUP_RC,     RC_INPUT_FILTERING_MODE,    VAR_INT8,       &masterConfig.inputFilteringMode, 0, 1 },
 
-    { GROUP_DRIVE,  DRV_MIN_THROTTLE,           VAR_UINT16      | MASTER_VALUE, &masterConfig.escAndServoConfig.minthrottle, PWM_RANGE_ZERO, PWM_RANGE_MAX },
-    { GROUP_DRIVE,  DRV_MAX_THROTTLE,           VAR_UINT16      | MASTER_VALUE, &masterConfig.escAndServoConfig.maxthrottle, PWM_RANGE_ZERO, PWM_RANGE_MAX },
-    { GROUP_DRIVE,  DRV_MIN_COMMAND,            VAR_UINT16      | MASTER_VALUE, &masterConfig.escAndServoConfig.mincommand, PWM_RANGE_ZERO, PWM_RANGE_MAX },
+    { GROUP_DRIVE,  DRV_MIN_THROTTLE,           VAR_UINT16,     &masterConfig.escAndServoConfig.minthrottle, PWM_RANGE_ZERO, PWM_RANGE_MAX },
+    { GROUP_DRIVE,  DRV_MAX_THROTTLE,           VAR_UINT16,     &masterConfig.escAndServoConfig.maxthrottle, PWM_RANGE_ZERO, PWM_RANGE_MAX },
+    { GROUP_DRIVE,  DRV_MIN_COMMAND,            VAR_UINT16,     &masterConfig.escAndServoConfig.mincommand, PWM_RANGE_ZERO, PWM_RANGE_MAX },
 
-    { GROUP_DRIVE,  MMIX_MOTOR_0,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[0], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_1,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[1], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_2,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[2], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_3,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[3], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_4,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[4], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_5,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[5], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_6,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[6], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_7,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[7], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_8,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[8], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_9,               VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[9], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_10,              VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[10], -1, 1},
-    { GROUP_DRIVE,  MMIX_MOTOR_11,              VAR_MMIX        | MASTER_VALUE, &masterConfig.customMotorMixer[11], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_0,               VAR_MMIX,       &masterConfig.customMotorMixer[0], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_1,               VAR_MMIX,       &masterConfig.customMotorMixer[1], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_2,               VAR_MMIX,       &masterConfig.customMotorMixer[2], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_3,               VAR_MMIX,       &masterConfig.customMotorMixer[3], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_4,               VAR_MMIX,       &masterConfig.customMotorMixer[4], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_5,               VAR_MMIX,       &masterConfig.customMotorMixer[5], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_6,               VAR_MMIX,       &masterConfig.customMotorMixer[6], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_7,               VAR_MMIX,       &masterConfig.customMotorMixer[7], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_8,               VAR_MMIX,       &masterConfig.customMotorMixer[8], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_9,               VAR_MMIX,       &masterConfig.customMotorMixer[9], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_10,              VAR_MMIX,       &masterConfig.customMotorMixer[10], -1, 1},
+    { GROUP_DRIVE,  MMIX_MOTOR_11,              VAR_MMIX,       &masterConfig.customMotorMixer[11], -1, 1},
 };
 
 #define PARAM_COUNT (sizeof(valueTable) / sizeof(valueTable[0]))
@@ -189,9 +177,6 @@ bool mspGetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data)
 {
     memset(data, 0, sizeof(paramProtocolData_t));
 
-    data->param_index = tableIndex;
-
-    data->param_count = PARAM_COUNT;
     data->group_id    = GROUP_ERROR;
     data->param_id    = ERR_PARAM;
     
@@ -201,13 +186,13 @@ bool mspGetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data)
 
     data->group_id    = valueTable[tableIndex].group_id;
     data->param_id    = valueTable[tableIndex].param_id;
-    data->data_type   = PARAM_DATA_TYPE(valueTable[tableIndex].type);
+    data->data_type   = valueTable[tableIndex].type;
     data->value_min   = valueTable[tableIndex].min;
     data->value_max   = valueTable[tableIndex].max;
 
     void * ptr = valueTable[tableIndex].ptr;
 
-    switch (PARAM_DATA_TYPE(valueTable[tableIndex].type)) {
+    switch (valueTable[tableIndex].type) {
         case VAR_UINT8:
             data->value[0].uint8_value = *(uint8_t *)ptr;
             break;
@@ -247,7 +232,7 @@ bool mspSetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data)
     if (data->group_id != valueTable[tableIndex].group_id || data->param_id != valueTable[tableIndex].param_id)
         return false;
 
-    if (data->data_type != PARAM_DATA_TYPE(valueTable[tableIndex].type))
+    if (data->data_type != valueTable[tableIndex].type)
         return false;
 
     int32_t minValue = valueTable[tableIndex].min;
@@ -331,4 +316,22 @@ bool mspSetParamByGroupAndId(paramProtocolData_t * data)
     else {
         return false;
     }
+}
+
+bool mspGetParamDescriptorByIndex(uint16_t tableIndex, paramProtocolDataDescriptor_t * data)
+{
+    data->param_index = tableIndex;
+    data->param_count = PARAM_COUNT;
+    data->group_id    = GROUP_ERROR;
+    data->param_id    = ERR_PARAM;
+    
+    // Sanity check 
+    if (tableIndex >= PARAM_COUNT)
+        return false;
+
+    data->group_id    = valueTable[tableIndex].group_id;
+    data->param_id    = valueTable[tableIndex].param_id;
+    data->data_type   = valueTable[tableIndex].type;
+
+    return true;
 }
