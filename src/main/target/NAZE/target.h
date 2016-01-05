@@ -178,7 +178,7 @@
 #define TELEMETRY
 #define SERIAL_RX
 #define USE_SERVOS
-#define USE_CLI
+//#define USE_CLI
 
 #define SKIP_CLI_COMMAND_HELP
 

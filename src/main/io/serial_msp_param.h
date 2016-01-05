@@ -54,21 +54,21 @@ enum {
         MMIX_MOTOR_0            = 0x0000,
         MMIX_MOTOR_1            = 0x0001,
         MMIX_MOTOR_2            = 0x0002,
-        MMIX_MOTOR_3            = 0x0004,
-        MMIX_MOTOR_4            = 0x0005,
-        MMIX_MOTOR_5            = 0x0006,
-        MMIX_MOTOR_6            = 0x0007,
-        MMIX_MOTOR_7            = 0x0008,
-        MMIX_MOTOR_8            = 0x0009,
-        MMIX_MOTOR_9            = 0x000A,
-        MMIX_MOTOR_10           = 0x000B,
-        MMIX_MOTOR_11           = 0x000C,
+        MMIX_MOTOR_3            = 0x0003,
+        MMIX_MOTOR_4            = 0x0004,
+        MMIX_MOTOR_5            = 0x0005,
+        MMIX_MOTOR_6            = 0x0006,
+        MMIX_MOTOR_7            = 0x0007,
+        MMIX_MOTOR_8            = 0x0008,
+        MMIX_MOTOR_9            = 0x0009,
+        MMIX_MOTOR_10           = 0x000A,
+        MMIX_MOTOR_11           = 0x000B,
 
     GROUP_ERROR = 0xFF,
         ERR_PARAM               = 0xFFFF,
 } paramGroupAndId_e;
 
-typedef union __attribute__((packed)) {
+typedef struct __attribute__((packed)) {
     uint16_t    param_count;   // allow to get all params by index one by one
     uint16_t    param_index;   // allow to get all params by index one by one
     uint8_t     group_id;      // param group
@@ -89,9 +89,9 @@ typedef struct __attribute__((packed)) {
     uint8_t             group_id;      // param group
     uint16_t            param_id;      // param index within group
     uint8_t             data_type;     // data type
-    packedParamValue_t  value[8];      // raw packed value
     int32_t             value_min;     // min value (int)
     int32_t             value_max;     // max value (int)
+    packedParamValue_t  value[8];      // raw packed value
 } paramProtocolData_t;
 
 bool mspGetParamByIndex(uint16_t tableIndex, paramProtocolData_t * data);
