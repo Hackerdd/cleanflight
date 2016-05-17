@@ -32,7 +32,7 @@ doc_files=(
     'Board - SPRacingF3.md'
     'Board - ColibriRace.md'
     'Board - Sparky.md'
-    'Board - Motolab.md'
+    'Board - MotoLab.md'
     'Board - RMDO.md'
     'Board - Naze32.md'
     'Board - Paris Air Hero 32.md'
@@ -41,6 +41,7 @@ doc_files=(
     'Board - CJMCU.md'
     'Board - Olimexino.md'
     'Board - ChebuzzF3.md'
+    'Board - PikoBLX.md'
 )
 
 if which gimli >/dev/null; then
