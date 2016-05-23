@@ -17,7 +17,7 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "Piko BLX" // Furious FPV Piko BLX
+#define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
 #define USE_CLI
 
 #define LED0_GPIO   GPIOB
