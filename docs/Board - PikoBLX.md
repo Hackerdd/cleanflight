@@ -94,7 +94,7 @@ Solder the jumper to PPM and use the PPM pin on the left side.
 |3 |4 |                     +-----+
 +-----+                     |11|12|
 |1 |2 | +-------+ +-------+ +-----+
-+-----+ |BAT|GND| |11 |12 |       |
++-----+ |GND|BAT| |15 |16 |       |
 |       +-------+ +-------+       |
 |                                 |
 +---------------------------------+
@@ -122,6 +122,8 @@ BAT and GND are for connecting a flight battery directly using the internal swit
 | 12         | Transponder +            |
 | 13         | Buzzer -                 |
 | 14         | Transponder -            |
+| 15         | VTX+                     |
+| 16         | GND                      |
 
 
 
