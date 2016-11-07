@@ -22,6 +22,7 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
 #define TARGET_CONFIG
+#define RX_CHANNELS_TAER
 
 #define LED0                    PB9
 #define LED1                    PB5

@@ -35,12 +35,14 @@
 #include "config/feature.h"
 
 void targetConfiguration(master_t *config) {
-    config->motorConfig.motorPwmRate = 4000;
+    config->motorConfig.motorPwmRate = 32000;
+    config->motorConfig.minthrottle = 1100;
     
     config->serialConfig.portConfigs[2].functionMask = FUNCTION_TELEMETRY_FRSKY;    
     config->rxConfig.sbus_inversion = 0;
     config->serialConfig.portConfigs[3].functionMask = FUNCTION_RX_SERIAL;
     featureSet(FEATURE_RX_SERIAL);
+    featureSet(FEATURE_TELEMETRY);
     config->rxConfig.serialrx_provider = SERIALRX_SBUS;
     
     config->profile[0].pidProfile.P8[ROLL] = 80;
@@ -53,4 +55,10 @@ void targetConfiguration(master_t *config) {
     config->profile[0].pidProfile.I8[YAW] = 45;
     
     config->profile[0].pidProfile.P8[PIDLEVEL] = 30;    
+    
+    config->profile[0].controlRateProfile[0].rcExpo8 = 15;
+    config->profile[0].controlRateProfile[0].rcYawExpo8 = 15;
+    for (uint8_t axis = 0; axis < FLIGHT_DYNAMICS_INDEX_COUNT; axis++) {
+        config->profile[0].controlRateProfile[0].rates[axis] = 80;
+    }
 }
