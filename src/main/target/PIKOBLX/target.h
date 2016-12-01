@@ -17,7 +17,7 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
+#define TARGET_BOARD_IDENTIFIER "RADI" // Furious FPV Piko BLX
 #define USE_CLI
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
@@ -98,7 +98,7 @@
 
 #define SPEKTRUM_BIND
 // USART3, PB11
-#define BIND_PIN                PB11
+#define BIND_PIN                PB4
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
