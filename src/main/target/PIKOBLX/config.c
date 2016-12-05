@@ -21,6 +21,24 @@
 
 #include "config/config_master.h"
 
+//WHOop
+#include "config/feature.h"
+
 void targetConfiguration(master_t *config) {
+#if defined(KOMBINI)
     config->batteryConfig.currentMeterScale = 125;
+#endif
+
+#if defined(ACROWHOOP)
+	config->motorConfig.motorPwmRate = 32000;
+	config->motorConfig.minthrottle = 1100;
+
+	//config for onboard FrSky RX
+	config->serialConfig.portConfigs[2].functionMask = FUNCTION_TELEMETRY_FRSKY;
+	config->rxConfig.sbus_inversion = 0;
+	config->serialConfig.portConfigs[3].functionMask = FUNCTION_RX_SERIAL;
+	featureSet(FEATURE_RX_SERIAL);
+	featureSet(FEATURE_TELEMETRY);
+	config->rxConfig.serialrx_provider = SERIALRX_SBUS;
+#endif
 }

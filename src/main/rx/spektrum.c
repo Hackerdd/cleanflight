@@ -200,13 +200,13 @@ void spektrumBind(rxConfig_t *rxConfig)
         return;
     }
 
-    LED1_ON;
+	//find bind pin automatically
+	const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RX_SERIAL);
+	if (!portConfig) {
+		return;
+	}
 
-    //find bind pin automatically
-    const serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_RX_SERIAL);
-    if (!portConfig) {
-        return;
-    }
+    LED1_ON;
 
     switch(portConfig->identifier){
 #ifdef USE_UART1
@@ -249,9 +249,11 @@ void spektrumBind(rxConfig_t *rxConfig)
         	BindPin = IOGetByTag(IO_TAG(UART8_RX_PIN));
         break;
 #endif
-      default:
-        return;
+      	default:
+        	return;
     }
+
+	//BindPin = IOGetByTag(IO_TAG(BIND_PIN));
 
     IOInit(BindPin, OWNER_RX_BIND, 0);
     IOConfigGPIO(BindPin, IOCFG_OUT_PP);

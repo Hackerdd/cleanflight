@@ -17,10 +17,22 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "RADI" // Furious FPV Piko BLX
+#if defined(RADIENCE)
+#define TARGET_BOARD_IDENTIFIER "RADI" // Furious FPV Radience
+#elif defined(KOMBINI)
+#define TARGET_BOARD_IDENTIFIER "KOMB" // Furious FPV  Kombini
+#elif defined(ACROWHOOP)
+#define TARGET_BOARD_IDENTIFIER "AWHO" // Furious FPV Acrowhoop
+#elif defined(NUKE)
+#define TARGET_BOARD_IDENTIFIER "NUKE" // Furious FPV Nuke
+#else
+#define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
+#endif
+
 #define USE_CLI
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
+
 #define TARGET_CONFIG
 
 #define LED0                    PB9
@@ -81,7 +93,9 @@
 #define CURRENT_METER_ADC_PIN   PB2
 #define VBAT_ADC_PIN            PA5
 
+#if !(defined(ACROWHOOP)||defined(NUKE))
 #define LED_STRIP
+#endif
 
 #define TRANSPONDER
 #define TRANSPONDER_GPIO                     GPIOA
@@ -98,9 +112,15 @@
 
 #define SPEKTRUM_BIND
 // USART3, PB11
+#if defined(RADIENCE)
 #define BIND_PIN                PB4
+#else
+#define BIND_PIN                PB11
+#endif
 
+#if !defined(BRUSHED_MOTORS)
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
+#endif
 
 // IO - stm32f303cc in 48pin package
 #define TARGET_IO_PORTA         0xffff
@@ -112,4 +132,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(15) | TIM_N(17))
-
