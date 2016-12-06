@@ -17,7 +17,18 @@
 
 #pragma once
 
+#if defined(RADIENCE)
+#define TARGET_BOARD_IDENTIFIER "RADI" // Furious FPV Radience
+#elif defined(KOMBINI)
+#define TARGET_BOARD_IDENTIFIER "KOMB" // Furious FPV  Kombini
+#elif defined(ACROWHOOP)
+#define TARGET_BOARD_IDENTIFIER "AWHO" // Furious FPV Acrowhoop
+#elif defined(NUKE)
+#define TARGET_BOARD_IDENTIFIER "NUKE" // Furious FPV Nuke
+#else
 #define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
+#endif
+
 #define USE_CLI
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
@@ -62,8 +73,8 @@
 #define UART2_TX_PIN            PB3
 #define UART2_RX_PIN            PB4
 
-#define UART3_TX_PIN            PB10 // PB10 (AF7)
-#define UART3_RX_PIN            PB11 // PB11 (AF7)
+#define UART3_TX_PIN            PB10
+#define UART3_RX_PIN            PB11
 
 #define USE_SPI
 #define USE_SPI_DEVICE_2
@@ -78,11 +89,17 @@
 #define BOARD_HAS_VOLTAGE_DIVIDER
 #define USE_ADC
 #define ADC_INSTANCE            ADC2
+#if defined(KOMBINI)
 #define CURRENT_METER_ADC_PIN   PB2
+#endif
 #define VBAT_ADC_PIN            PA5
 
-#define LED_STRIP
 
+#if !(defined(ACROWHOOP)||defined(NUKE))
+#define LED_STRIP
+#endif
+
+#if !(defined(NUKE) || defined(ACROWHOP))
 #define TRANSPONDER
 #define TRANSPONDER_GPIO                     GPIOA
 #define TRANSPONDER_GPIO_AHB_PERIPHERAL      RCC_AHBPeriph_GPIOA
@@ -95,12 +112,15 @@
 #define TRANSPONDER_IRQ                      DMA1_Channel2_IRQn
 #define TRANSPONDER_DMA_TC_FLAG              DMA1_FLAG_TC2
 #define TRANSPONDER_DMA_HANDLER_IDENTIFER    DMA1_CH2_HANDLER
+#endif
 
 #define SPEKTRUM_BIND
 // USART3, PB11
 #define BIND_PIN                PB11
 
+#if !defined(BRUSHED_MOTORS)
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
+#endif
 
 // IO - stm32f303cc in 48pin package
 #define TARGET_IO_PORTA         0xffff
@@ -112,4 +132,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 10
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(15) | TIM_N(17))
-
