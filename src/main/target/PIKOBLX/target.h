@@ -32,7 +32,10 @@
 #define USE_CLI
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
+
+#if defined(KOMBINI) || defined(ACROWHOOP) || defined(NUKE)
 #define TARGET_CONFIG
+#endif
 
 #define LED0                    PB9
 #define LED1                    PB5
