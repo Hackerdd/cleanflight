@@ -27,6 +27,12 @@ void targetConfiguration(master_t *config) {
     config->batteryConfig.currentMeterScale = 125;
 }
 
+#elif defined(RACEWHOOP)
+void targetConfiguration(master_t *config) {
+    config->batteryConfig.currentMeterScale = 1000;
+}
+
+
 #elif defined(ACROWHOOP) || defined(NUKE)
 void targetConfiguration(master_t *config) {
 	config->motorConfig.motorPwmRate = 32000;

@@ -25,6 +25,8 @@
 #define TARGET_BOARD_IDENTIFIER "AWHO" // Furious FPV Acrowhoop
 #elif defined(NUKE)
 #define TARGET_BOARD_IDENTIFIER "NUKE" // Furious FPV Nuke
+#elif defined(NUKE)
+#define TARGET_BOARD_IDENTIFIER "RWHO" // Furious FPV NRacewhoop
 #else
 #define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
 #endif
@@ -33,7 +35,7 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
 
-#if defined(KOMBINI) || defined(ACROWHOOP) || defined(NUKE)
+#if defined(KOMBINI) || defined(ACROWHOOP) || defined(NUKE) || defined(RACEWHOOP)
 #define TARGET_CONFIG
 #endif
 
@@ -92,7 +94,7 @@
 #define BOARD_HAS_VOLTAGE_DIVIDER
 #define USE_ADC
 #define ADC_INSTANCE            ADC2
-#if defined(KOMBINI)
+#if defined(KOMBINI) || defined(RACEWHOOP)
 #define CURRENT_METER_ADC_PIN   PB2
 #endif
 #define VBAT_ADC_PIN            PA5
