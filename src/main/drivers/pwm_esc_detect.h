@@ -14,18 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#ifdef BRUSHED_ESC_AUTODETECT
+typedef enum {
+    MOTOR_UNKNOWN = 0,
+    MOTOR_BRUSHED,
+    MOTOR_BRUSHLESS
+} HardwareMotorTypes_e;
 
-#include <platform.h>
+extern uint8_t hardwareMotorType;
 
-#include "config/config_master.h"
-
-
-// Motolab target supports 2 different type of boards Tornado / Cyclone.
-void targetConfiguration(master_t *config)
-{
-    config->gyroConfig.gyro_sync_denom = 4;
-    config->pidConfig.pid_process_denom = 1;
-}
+void detectBrushedESC(void);
+#endif
