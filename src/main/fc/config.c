@@ -407,6 +407,7 @@ void resetFlight3DConfig(flight3DConfig_t *flight3DConfig)
 void resetTelemetryConfig(telemetryConfig_t *telemetryConfig)
 {
     telemetryConfig->telemetry_inversion = 1;
+    telemetryConfig->sportHalfDuplex = 1;
     telemetryConfig->telemetry_switch = 0;
     telemetryConfig->gpsNoFixLatitude = 0;
     telemetryConfig->gpsNoFixLongitude = 0;
@@ -746,7 +747,7 @@ void createDefaultConfig(master_t *config)
 
     resetProfile(&config->profile[0]);
 
-    resetRollAndPitchTrims(&config->accelerometerTrims);
+    resetRollAndPitchTrims(&config->accelerometerConfig.accelerometerTrims);
 
     config->compassConfig.mag_declination = 0;
     config->accelerometerConfig.acc_lpf_hz = 10.0f;
@@ -881,7 +882,7 @@ void activateConfig(void)
     resetAdjustmentStates();
 
     useRcControlsConfig(
-        masterConfig.modeActivationConditions,
+        modeActivationProfile()->modeActivationConditions,
         &masterConfig.motorConfig,
         &currentProfile->pidProfile
     );
