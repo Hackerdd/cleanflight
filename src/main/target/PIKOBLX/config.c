@@ -24,7 +24,7 @@
 
 #if defined(KOMBINI)
 void targetConfiguration(master_t *config) {
-	feature(FEATURE_CURRENT_METER);
+	featureSet(FEATURE_CURRENT_METER);
     config->batteryConfig.currentMeterScale = 125;
 }
 
@@ -36,7 +36,7 @@ void targetConfiguration(master_t *config) {
 	featureSet(FEATURE_RX_SERIAL);
 	featureSet(FEATURE_TELEMETRY);
 	config->rxConfig.serialrx_provider = SERIALRX_SBUS;
-	feature(FEATURE_CURRENT_METER);
+	featureSet(FEATURE_CURRENT_METER);
 	config->batteryConfig.currentMeterScale = 1000;
 	config->batteryConfig.batteryCapacity = 300;
 }
