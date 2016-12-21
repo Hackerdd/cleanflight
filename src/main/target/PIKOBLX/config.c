@@ -24,14 +24,22 @@
 
 #if defined(KOMBINI)
 void targetConfiguration(master_t *config) {
+	feature(FEATURE_CURRENT_METER);
     config->batteryConfig.currentMeterScale = 125;
 }
 
 #elif defined(RACEWHOOP)
 void targetConfiguration(master_t *config) {
-    config->batteryConfig.currentMeterScale = 1000;
+	config->serialConfig.portConfigs[2].functionMask = FUNCTION_TELEMETRY_FRSKY;
+	config->rxConfig.sbus_inversion = 0;
+	config->serialConfig.portConfigs[3].functionMask = FUNCTION_RX_SERIAL;
+	featureSet(FEATURE_RX_SERIAL);
+	featureSet(FEATURE_TELEMETRY);
+	config->rxConfig.serialrx_provider = SERIALRX_SBUS;
+	feature(FEATURE_CURRENT_METER);
+	config->batteryConfig.currentMeterScale = 1000;
+	config->batteryConfig.batteryCapacity = 300;
 }
-
 
 #elif defined(ACROWHOOP) || defined(NUKE)
 void targetConfiguration(master_t *config) {
