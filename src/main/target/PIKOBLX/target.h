@@ -42,6 +42,15 @@
 #define LED0                    PB9
 #define LED1                    PB5
 
+#if defined(ACROWHOOP) || defined(NUKE)
+#define BRUSHED_MOTORS
+#define RX_CHANNELS_TAER
+#endif
+
+#if defined(RACEWHOOP)
+#define RX_CHANNELS_TAER
+#endif
+
 #define BEEPER                  PA0
 #define BEEPER_INVERTED
 
