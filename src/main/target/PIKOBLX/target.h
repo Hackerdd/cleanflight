@@ -25,8 +25,8 @@
 #define TARGET_BOARD_IDENTIFIER "AWHO" // Furious FPV Acrowhoop
 #elif defined(NUKE)
 #define TARGET_BOARD_IDENTIFIER "NUKE" // Furious FPV Nuke
-#elif defined(NUKE)
-#define TARGET_BOARD_IDENTIFIER "RWHO" // Furious FPV NRacewhoop
+#elif defined(RACEWHOOP)
+#define TARGET_BOARD_IDENTIFIER "RWHO" // Furious FPV Racewhoop
 #else
 #define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV Piko BLX
 #endif
