@@ -45,7 +45,7 @@
 #include "drivers/accgyro.h"
 #include "drivers/compass.h"
 #include "drivers/pwm_esc_detect.h"
-#include "drivers/pwm_rx.h"
+#include "drivers/rx_pwm.h"
 #include "drivers/pwm_output.h"
 #include "drivers/adc.h"
 #include "drivers/bus_i2c.h"
@@ -196,18 +196,24 @@ void init(void)
 #endif
 
 #if defined(BUTTONS)
+#ifdef BUTTON_A_PIN
     IO_t buttonAPin = IOGetByTag(IO_TAG(BUTTON_A_PIN));
     IOInit(buttonAPin, OWNER_SYSTEM, 0);
     IOConfigGPIO(buttonAPin, IOCFG_IPU);
+#endif
 
+#ifdef BUTTON_B_PIN
     IO_t buttonBPin = IOGetByTag(IO_TAG(BUTTON_B_PIN));
     IOInit(buttonBPin, OWNER_SYSTEM, 0);
     IOConfigGPIO(buttonBPin, IOCFG_IPU);
+#endif
 
     // Check status of bind plug and exit if not active
     delayMicroseconds(10);  // allow configuration to settle
 
     if (!isMPUSoftReset()) {
+#if defined(BUTTON_A_PIN) && defined(BUTTON_B_PIN)
+        // two buttons required
         uint8_t secondsRemaining = 5;
         bool bothButtonsHeld;
         do {
@@ -221,6 +227,7 @@ void init(void)
                 LED0_TOGGLE;
             }
         } while (bothButtonsHeld);
+#endif
     }
 #endif
 
@@ -232,7 +239,7 @@ void init(void)
                 // Spektrum satellite binding if enabled on startup.
                 // Must be called before that 100ms sleep so that we don't lose satellite's binding window after startup.
                 // The rest of Spektrum initialization will happen later - via spektrumInit()
-                spektrumBind(&masterConfig.rxConfig);
+                spektrumBind(rxConfig());
                 break;
         }
     }
@@ -243,16 +250,16 @@ void init(void)
     timerInit();  // timer must be initialized before any channel is allocated
 
 #if defined(AVOID_UART1_FOR_PWM_PPM)
-    serialInit(&masterConfig.serialConfig, feature(FEATURE_SOFTSERIAL),
+    serialInit(serialConfig(), feature(FEATURE_SOFTSERIAL),
             feature(FEATURE_RX_PPM) || feature(FEATURE_RX_PARALLEL_PWM) ? SERIAL_PORT_USART1 : SERIAL_PORT_NONE);
 #elif defined(AVOID_UART2_FOR_PWM_PPM)
-    serialInit(&masterConfig.serialConfig, feature(FEATURE_SOFTSERIAL),
+    serialInit(serialConfig(), feature(FEATURE_SOFTSERIAL),
             feature(FEATURE_RX_PPM) || feature(FEATURE_RX_PARALLEL_PWM) ? SERIAL_PORT_USART2 : SERIAL_PORT_NONE);
 #elif defined(AVOID_UART3_FOR_PWM_PPM)
-    serialInit(&masterConfig.serialConfig, feature(FEATURE_SOFTSERIAL),
+    serialInit(serialConfig(), feature(FEATURE_SOFTSERIAL),
             feature(FEATURE_RX_PPM) || feature(FEATURE_RX_PARALLEL_PWM) ? SERIAL_PORT_USART3 : SERIAL_PORT_NONE);
 #else
-    serialInit(&masterConfig.serialConfig, feature(FEATURE_SOFTSERIAL), SERIAL_PORT_NONE);
+    serialInit(serialConfig(), feature(FEATURE_SOFTSERIAL), SERIAL_PORT_NONE);
 #endif
 
     mixerInit(mixerConfig()->mixerMode, masterConfig.customMotorMixer);
@@ -271,13 +278,13 @@ void init(void)
     }
 
     mixerConfigureOutput();
-    motorInit(&masterConfig.motorConfig, idlePulse, getMotorCount());
+    motorInit(motorConfig(), idlePulse, getMotorCount());
 
 #ifdef USE_SERVOS
     servoConfigureOutput();
     if (isMixerUsingServos()) {
         //pwm_params.useChannelForwarding = feature(FEATURE_CHANNEL_FORWARDING);
-        servoInit(&masterConfig.servoConfig);
+        servoInit(servoConfig());
     }
 #endif
 
@@ -379,7 +386,7 @@ void init(void)
     if (feature(FEATURE_OSD)) {
 #ifdef USE_MAX7456
         // if there is a max7456 chip for the OSD then use it, otherwise use MSP
-        displayPort_t *osdDisplayPort = max7456DisplayPortInit(&masterConfig.vcdProfile);
+        displayPort_t *osdDisplayPort = max7456DisplayPortInit(vcdProfile());
 #else
         displayPort_t *osdDisplayPort = displayPortMspInit();
 #endif
@@ -388,7 +395,7 @@ void init(void)
 #endif
 
 #ifdef SONAR
-    const sonarConfig_t *sonarConfig = &masterConfig.sonarConfig;
+    const sonarConfig_t *sonarConfig = sonarConfig();
 #else
     const void *sonarConfig = NULL;
 #endif
@@ -439,11 +446,11 @@ void init(void)
 #ifdef GPS
     if (feature(FEATURE_GPS)) {
         gpsInit(
-            &masterConfig.serialConfig,
-            &masterConfig.gpsConfig
+            serialConfig(),
+            gpsConfig()
         );
         navigationInit(
-            &masterConfig.gpsProfile,
+            gpsProfile(),
             &currentProfile->pidProfile
         );
     }
@@ -484,7 +491,7 @@ void init(void)
 
 #ifdef USE_FLASHFS
 #if defined(USE_FLASH_M25P16)
-    m25p16_init(&masterConfig.flashConfig);
+    m25p16_init(flashConfig());
 #endif
 
     flashfsInit();
@@ -529,7 +536,7 @@ void init(void)
     // Now that everything has powered up the voltage and cell count be determined.
 
     if (feature(FEATURE_VBAT | FEATURE_CURRENT_METER))
-        batteryInit(&masterConfig.batteryConfig);
+        batteryInit(batteryConfig());
 
 #ifdef USE_DASHBOARD
     if (feature(FEATURE_DASHBOARD)) {

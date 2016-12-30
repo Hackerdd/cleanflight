@@ -15,23 +15,19 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <stdint.h>
 
-#include "common/time.h"
+#include <platform.h>
+#include "drivers/io.h"
 
-typedef struct {
-    bool stale;
-    int8_t temperature;
-    int16_t voltage;
-    int16_t current;
-    int16_t consumption;
-    int16_t rpm;
-} escSensorData_t;
+#include "drivers/dma.h"
+#include "drivers/timer.h"
+#include "drivers/timer_def.h"
 
-bool escSensorInit(void);
-void escSensorProcess(timeUs_t currentTime);
-
-#define ESC_SENSOR_COMBINED 255
-
-escSensorData_t getEscSensorData(uint8_t motorNumber);
-
+const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
+    DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_MOTOR, 1, 1),  
+    DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MOTOR, 1, 0),  
+    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MOTOR, 1, 0),  
+    DEF_TIM(TIM2,  CH3, PA2,  TIM_USE_MOTOR, 1, 0),  
+    DEF_TIM(TIM4,  CH2, PB7,  TIM_USE_LED,   0, 0),  // LED 
+};
