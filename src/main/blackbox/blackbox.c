@@ -1169,6 +1169,8 @@ static bool blackboxWriteSysinfo()
         return false;
     }
 
+    const profile_t *currentProfile = &masterConfig.profile[masterConfig.current_profile_index];
+    const controlRateConfig_t *currentControlRateProfile = &currentProfile->controlRateProfile[masterConfig.profile[masterConfig.current_profile_index].activeRateProfile];
     switch (xmitState.headerIndex) {
         BLACKBOX_PRINT_HEADER_LINE("Firmware type:%s",                    "Cleanflight");
         BLACKBOX_PRINT_HEADER_LINE("Firmware revision:%s %s (%s) %s", FC_FIRMWARE_NAME, FC_VERSION_STRING, shortGitRevision, targetName);
@@ -1204,8 +1206,6 @@ static bool blackboxWriteSysinfo()
         BLACKBOX_PRINT_HEADER_LINE("looptime:%d",                         gyro.targetLooptime);
         BLACKBOX_PRINT_HEADER_LINE("gyro_sync_denom:%d",                  gyroConfig()->gyro_sync_denom);
         BLACKBOX_PRINT_HEADER_LINE("pid_process_denom:%d",                pidConfig()->pid_process_denom);
-        const profile_t *currentProfile = &masterConfig.profile[masterConfig.current_profile_index];
-        const controlRateConfig_t *currentControlRateProfile = &currentProfile->controlRateProfile[masterConfig.profile[masterConfig.current_profile_index].activeRateProfile];
         BLACKBOX_PRINT_HEADER_LINE("rcRate:%d",                           currentControlRateProfile->rcRate8);
         BLACKBOX_PRINT_HEADER_LINE("rcExpo:%d",                           currentControlRateProfile->rcExpo8);
         BLACKBOX_PRINT_HEADER_LINE("rcYawRate:%d",                        currentControlRateProfile->rcYawRate8);
@@ -1258,11 +1258,11 @@ static bool blackboxWriteSysinfo()
         BLACKBOX_PRINT_HEADER_LINE("pidAtMinThrottle:%d",                 currentProfile->pidProfile.pidAtMinThrottle);
 
         // Betaflight PID controller parameters
-        BLACKBOX_PRINT_HEADER_LINE("itermThrottleGain:%d",                currentProfile->pidProfile.itermThrottleGain);
+        BLACKBOX_PRINT_HEADER_LINE("itermThrottleThreshold:%d",           currentProfile->pidProfile.itermThrottleThreshold);
         BLACKBOX_PRINT_HEADER_LINE("setpointRelaxRatio:%d",               currentProfile->pidProfile.setpointRelaxRatio);
         BLACKBOX_PRINT_HEADER_LINE("dtermSetpointWeight:%d",              currentProfile->pidProfile.dtermSetpointWeight);
-        BLACKBOX_PRINT_HEADER_LINE("yawRateAccelLimit:%d",                currentProfile->pidProfile.yawRateAccelLimit);
-        BLACKBOX_PRINT_HEADER_LINE("rateAccelLimit:%d",                   currentProfile->pidProfile.rateAccelLimit);
+        BLACKBOX_PRINT_HEADER_LINE("yawRateAccelLimit:%d",                castFloatBytesToInt(currentProfile->pidProfile.yawRateAccelLimit));
+        BLACKBOX_PRINT_HEADER_LINE("rateAccelLimit:%d",                   castFloatBytesToInt(currentProfile->pidProfile.rateAccelLimit));
         // End of Betaflight controller parameters
 
         BLACKBOX_PRINT_HEADER_LINE("deadband:%d",                         rcControlsConfig()->deadband);
@@ -1329,11 +1329,6 @@ void blackboxLogEvent(FlightLogEvent event, flightLogEventData_t *data)
                 blackboxWrite(data->inflightAdjustment.adjustmentFunction);
                 blackboxWriteSignedVB(data->inflightAdjustment.newValue);
             }
-        break;
-        case FLIGHT_LOG_EVENT_GTUNE_RESULT:
-            blackboxWrite(data->gtuneCycleResult.gtuneAxis);
-            blackboxWriteSignedVB(data->gtuneCycleResult.gtuneGyroAVG);
-            blackboxWriteS16(data->gtuneCycleResult.gtuneNewP);
         break;
         case FLIGHT_LOG_EVENT_LOGGING_RESUME:
             blackboxWriteUnsignedVB(data->loggingResume.logIteration);
