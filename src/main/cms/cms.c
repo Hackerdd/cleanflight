@@ -44,18 +44,23 @@
 
 #include "drivers/system.h"
 
+// For rcData, stopAllMotors, stopPwmAllMotors
+#include "config/config_profile.h"
+#include "config/feature.h"
+#include "config/parameter_group.h"
+#include "config/parameter_group_ids.h"
+
 // For 'ARM' related
 #include "fc/config.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
-// For rcData, stopAllMotors, stopPwmAllMotors
-#include "config/config_profile.h"
-#include "config/config_master.h"
-#include "config/feature.h"
+#include "flight/mixer.h"
 
-// For VISIBLE* (Actually, included by config_master.h)
+// For VISIBLE*
 #include "io/osd.h"
+
+#include "rx/rx.h"
 
 // DisplayPort management
 
@@ -230,13 +235,28 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_Submenu:
     case OME_Funcall:
         if (IS_PRINTVALUE(p))  {
-            cnt = displayWrite(pDisplay, RIGHT_MENU_COLUMN(pDisplay), row, ">");
+
+            int colPos = RIGHT_MENU_COLUMN(pDisplay);
+
+            if ((p->type == OME_Submenu) && p->func && (p->flags & OPTSTRING)) {
+
+                // Special case of sub menu entry with optional value display.
+
+                char *str = ((CMSMenuOptFuncPtr)p->func)();
+                cnt = displayWrite(pDisplay, colPos, row, str);
+                colPos += strlen(str);
+            }
+
+            cnt += displayWrite(pDisplay, colPos, row, ">");
+
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_Bool:
         if (IS_PRINTVALUE(p) && p->data) {
             if (*((uint8_t *)(p->data))) {
@@ -247,7 +267,8 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
-    case OME_TAB: {
+
+    case OME_TAB:
         if (IS_PRINTVALUE(p)) {
             OSD_TAB_t *ptr = p->data;
             //cnt = displayWrite(pDisplay, RIGHT_MENU_COLUMN(pDisplay) - 5, row, (char *)ptr->names[*ptr->val]);
@@ -255,7 +276,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
-    }
+
 #ifdef OSD
     case OME_VISIBLE:
         if (IS_PRINTVALUE(p) && p->data) {
@@ -273,6 +294,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
         }
         break;
 #endif
+
     case OME_UINT8:
         if (IS_PRINTVALUE(p) && p->data) {
             OSD_UINT8_t *ptr = p->data;
@@ -282,6 +304,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_INT8:
         if (IS_PRINTVALUE(p) && p->data) {
             OSD_INT8_t *ptr = p->data;
@@ -291,6 +314,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_UINT16:
         if (IS_PRINTVALUE(p) && p->data) {
             OSD_UINT16_t *ptr = p->data;
@@ -300,6 +324,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_INT16:
         if (IS_PRINTVALUE(p) && p->data) {
             OSD_UINT16_t *ptr = p->data;
@@ -309,6 +334,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_FLOAT:
         if (IS_PRINTVALUE(p) && p->data) {
             OSD_FLOAT_t *ptr = p->data;
@@ -318,6 +344,7 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_Label:
         if (IS_PRINTVALUE(p) && p->data) {
             // A label with optional string, immediately following text
@@ -325,10 +352,12 @@ static int cmsDrawMenuEntry(displayPort_t *pDisplay, OSD_Entry *p, uint8_t row)
             CLR_PRINTVALUE(p);
         }
         break;
+
     case OME_OSD_Exit:
     case OME_END:
     case OME_Back:
         break;
+
     case OME_MENU:
         // Fall through
     default:
@@ -645,17 +674,34 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
 
     switch (p->type) {
         case OME_Submenu:
-        case OME_Funcall:
+            if (key == KEY_RIGHT) {
+                cmsMenuChange(pDisplay, p->data);
+                res = BUTTON_PAUSE;
+            }
+            break;
+
+        case OME_Funcall:;
+            long retval;
+            if (p->func && key == KEY_RIGHT) {
+                retval = p->func(pDisplay, p->data);
+                if (retval == MENU_CHAIN_BACK)
+                    cmsMenuBack(pDisplay);
+                res = BUTTON_PAUSE;
+            }
+            break;
+
         case OME_OSD_Exit:
             if (p->func && key == KEY_RIGHT) {
                 p->func(pDisplay, p->data);
                 res = BUTTON_PAUSE;
             }
             break;
+
         case OME_Back:
             cmsMenuBack(pDisplay);
             res = BUTTON_PAUSE;
             break;
+
         case OME_Bool:
             if (p->data) {
                 uint8_t *val = p->data;
@@ -666,6 +712,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 SET_PRINTVALUE(p);
             }
             break;
+
 #ifdef OSD
         case OME_VISIBLE:
             if (p->data) {
@@ -682,6 +729,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
             }
             break;
 #endif
+
         case OME_UINT8:
         case OME_FLOAT:
             if (p->data) {
@@ -700,6 +748,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 }
             }
             break;
+
         case OME_TAB:
             if (p->type == OME_TAB) {
                 OSD_TAB_t *ptr = p->data;
@@ -717,6 +766,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 SET_PRINTVALUE(p);
             }
             break;
+
         case OME_INT8:
             if (p->data) {
                 OSD_INT8_t *ptr = p->data;
@@ -734,6 +784,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 }
             }
             break;
+
         case OME_UINT16:
             if (p->data) {
                 OSD_UINT16_t *ptr = p->data;
@@ -751,6 +802,7 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 }
             }
             break;
+
         case OME_INT16:
             if (p->data) {
                 OSD_INT16_t *ptr = p->data;
@@ -768,11 +820,14 @@ STATIC_UNIT_TESTED uint16_t cmsHandleKey(displayPort_t *pDisplay, uint8_t key)
                 }
             }
             break;
+
         case OME_String:
             break;
+
         case OME_Label:
         case OME_END:
             break;
+
         case OME_MENU:
             // Shouldn't happen
             break;

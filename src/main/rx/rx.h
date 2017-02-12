@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common/time.h"
+#include "config/parameter_group.h"
 
 #define STICK_CHANNEL_COUNT 4
 
@@ -55,7 +56,8 @@ typedef enum {
     SERIALRX_XBUS_MODE_B_RJ01 = 6,
     SERIALRX_IBUS = 7,
     SERIALRX_JETIEXBUS = 8,
-    SERIALRX_CRSF = 9
+    SERIALRX_CRSF = 9,
+    SERIALRX_SRXL = 10,
 } SerialRXType;
 
 #define MAX_SUPPORTED_RC_PPM_CHANNEL_COUNT          12
@@ -104,10 +106,16 @@ typedef struct rxFailsafeChannelConfiguration_s {
     uint8_t step;
 } rxFailsafeChannelConfiguration_t;
 
+//!!TODO change to rxFailsafeChannelConfig_t
+PG_DECLARE_ARRAY(rxFailsafeChannelConfiguration_t, MAX_SUPPORTED_RC_CHANNEL_COUNT, rxFailsafeChannelConfigs);
+
 typedef struct rxChannelRangeConfiguration_s {
     uint16_t min;
     uint16_t max;
 } rxChannelRangeConfiguration_t;
+
+//!!TODO change to rxChannelRangeConfig_t
+PG_DECLARE_ARRAY(rxChannelRangeConfiguration_t, NON_AUX_CHANNEL_COUNT, rxChannelRangeConfigs);
 
 typedef struct rxConfig_s {
     uint8_t rcmap[MAX_MAPPABLE_RX_INPUTS];  // mapping of radio channels to internal RPYTA+ order
@@ -125,6 +133,7 @@ typedef struct rxConfig_s {
     uint16_t mincheck;                      // minimum rc end
     uint16_t maxcheck;                      // maximum rc end
     uint8_t rcInterpolation;
+    uint8_t rcInterpolationChannels;
     uint8_t rcInterpolationInterval;
     uint8_t fpvCamAngleDegrees;             // Camera angle to be scaled into rc commands
     uint8_t max_aux_channel;
@@ -136,6 +145,8 @@ typedef struct rxConfig_s {
 
     rxChannelRangeConfiguration_t channelRanges[NON_AUX_CHANNEL_COUNT];
 } rxConfig_t;
+
+PG_DECLARE(rxConfig_t, rxConfig);
 
 #define REMAPPABLE_CHANNEL_COUNT (sizeof(((rxConfig_t *)0)->rcmap) / sizeof(((rxConfig_t *)0)->rcmap[0]))
 

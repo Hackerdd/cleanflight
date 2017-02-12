@@ -92,8 +92,6 @@
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15
 
-#define SENSORS_SET (SENSOR_ACC | SENSOR_BARO | SENSOR_GPS | SENSOR_MAG)
-
 #define USE_ADC
 #define BOARD_HAS_VOLTAGE_DIVIDER
 
@@ -109,15 +107,15 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
-//#define NAV
-//#define NAV_AUTO_MAG_DECLINATION
-//#define NAV_GPS_GLITCH_DETECTION
-//#define NAV_MAX_WAYPOINTS               60
-//#define GPS
+#define NAV
+#define NAV_AUTO_MAG_DECLINATION
+#define NAV_GPS_GLITCH_DETECTION
+#define NAV_MAX_WAYPOINTS               60
+#define GPS
 #define BLACKBOX
 #define TELEMETRY
 #define SERIAL_RX
-//#define AUTOTUNE
+#define AUTOTUNE
 #define USE_SERVOS
 #define USE_CLI
 

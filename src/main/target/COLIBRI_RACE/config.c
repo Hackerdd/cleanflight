@@ -15,21 +15,23 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <platform.h>
 
+#include "common/maths.h"
+
+#include "config/config_master.h"
+#include "config/feature.h"
+
+#include "io/ledstrip.h"
 #include "io/motors.h"
 
 #include "sensors/battery.h"
 
-#include "config/config_master.h"
-#include "config/feature.h"
-#include "io/ledstrip.h"
 
-void targetApplyDefaultLedStripConfig(ledConfig_t *ledConfigs)   
+void targetApplyDefaultLedStripConfig(ledConfig_t *ledConfigs)
 {
     const ledConfig_t defaultLedStripConfig[] = {
         DEFINE_LED( 0,   0,     6,  LD(WEST), LF(COLOR), LO(WARNING),   0 ),
@@ -62,7 +64,7 @@ void targetConfiguration(master_t *config)
     config->flight3DConfig.deadband3d_high = 1514;
     config->flight3DConfig.neutral3d = 1460;
     config->flight3DConfig.deadband3d_throttle = 0;
-    
+
     config->failsafeConfig.failsafe_procedure = 1;
     config->failsafeConfig.failsafe_throttle_low_delay = 10;
 

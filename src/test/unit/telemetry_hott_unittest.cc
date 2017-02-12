@@ -27,24 +27,30 @@ extern "C" {
     #include "build/debug.h"
 
     #include "common/axis.h"
+    #include "common/gps_conversion.h"
+
+    #include "config/parameter_group.h"
+    #include "config/parameter_group_ids.h"
 
     #include "drivers/system.h"
     #include "drivers/serial.h"
+    #include "drivers/system.h"
 
-    #include "sensors/sensors.h"
-    #include "sensors/battery.h"
-    #include "sensors/barometer.h"
+    #include "fc/runtime_config.h"
 
-    #include "io/serial.h"
+    #include "flight/pid.h"
+
     #include "io/gps.h"
+    #include "io/serial.h"
+
+    #include "sensors/barometer.h"
+    #include "sensors/battery.h"
+    #include "sensors/sensors.h"
 
     #include "telemetry/telemetry.h"
     #include "telemetry/hott.h"
 
-    #include "flight/pid.h"
-    #include "flight/gps_conversion.h"
-
-    #include "fc/runtime_config.h"
+    PG_REGISTER(telemetryConfig_t, telemetryConfig, PG_TELEMETRY_CONFIG, 0);
 }
 
 #include "unittest_macros.h"
@@ -165,8 +171,8 @@ int32_t GPS_coord[2];
 uint16_t GPS_speed;                 // speed in 0.1m/s
 uint16_t GPS_distanceToHome;        // distance to home point in meters
 uint16_t GPS_altitude;              // altitude in 0.1m
-uint16_t vbat;
 int16_t GPS_directionToHome;        // direction to home or hol point in degrees
+uint16_t vbat;
 
 int32_t amperage;
 int32_t mAhDrawn;
@@ -246,7 +252,7 @@ bool telemetryDetermineEnabledState(portSharing_e)
     return true;
 }
 
-portSharing_e determinePortSharing(serialPortConfig_t *, serialPortFunction_e)
+portSharing_e determinePortSharing(const serialPortConfig_t *, serialPortFunction_e)
 {
     return PORTSHARING_NOT_SHARED;
 }
@@ -256,5 +262,9 @@ batteryState_e getBatteryState(void)
 	return BATTERY_OK;
 }
 
+uint16_t getVbat(void)
+{
+    return vbat;
+}
 }
 

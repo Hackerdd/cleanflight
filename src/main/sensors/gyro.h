@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include "drivers/accgyro.h"
+#include "config/parameter_group.h"
 #include "common/axis.h"
+#include "drivers/sensor.h"
 
 typedef enum {
     GYRO_NONE = 0,
@@ -31,11 +32,12 @@ typedef enum {
     GYRO_MPU6500,
     GYRO_MPU9250,
     GYRO_ICM20689,
+    GYRO_ICM20608G,
+    GYRO_ICM20602,
     GYRO_FAKE
 } gyroSensor_e;
 
 typedef struct gyro_s {
-    gyroDev_t dev;
     uint32_t targetLooptime;
     float gyroADCf[XYZ_AXIS_COUNT];
 } gyro_t;
@@ -49,14 +51,25 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_lpf;                         // gyro LPF setting - values are driver specific, in case of invalid number, a reasonable default ~30-40HZ is chosen.
     uint8_t  gyro_soft_lpf_type;
     uint8_t  gyro_soft_lpf_hz;
+    bool     gyro_isr_update;
+    bool     gyro_use_32khz;
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
     uint16_t gyro_soft_notch_hz_2;
     uint16_t gyro_soft_notch_cutoff_2;
 } gyroConfig_t;
 
-void gyroSetCalibrationCycles(void);
-bool gyroInit(const gyroConfig_t *gyroConfigToUse);
+PG_DECLARE(gyroConfig_t, gyroConfig);
+
+bool gyroInit(void);
 void gyroInitFilters(void);
 void gyroUpdate(void);
+struct mpuConfiguration_s;
+const struct mpuConfiguration_s *gyroMpuConfiguration(void);
+struct mpuDetectionResult_s;
+const struct mpuDetectionResult_s *gyroMpuDetectionResult(void);
+void gyroSetCalibrationCycles(void);
 bool isGyroCalibrationComplete(void);
+void gyroReadTemperature(void);
+int16_t gyroGetTemperature(void);
+int16_t gyroRateDps(int axis);

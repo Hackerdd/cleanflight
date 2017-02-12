@@ -35,15 +35,24 @@
 #define GYRO_LPF_5HZ        6
 #define GYRO_LPF_NONE       7
 
+typedef enum {
+    GYRO_RATE_1_kHz,
+    GYRO_RATE_8_kHz,
+    GYRO_RATE_32_kHz,
+} gyroRateKHz_e;
+
 typedef struct gyroDev_s {
     sensorGyroInitFuncPtr init;                             // initialize function
     sensorGyroReadFuncPtr read;                             // read 3 axis data function
     sensorGyroReadDataFuncPtr temperature;                  // read temperature if available
     sensorGyroInterruptStatusFuncPtr intStatus;
+    sensorGyroUpdateFuncPtr update;
     extiCallbackRec_t exti;
     float scale;                                            // scalefactor
-    int16_t gyroADCRaw[XYZ_AXIS_COUNT];
-    uint16_t lpf;
+    volatile int16_t gyroADCRaw[XYZ_AXIS_COUNT];
+    uint8_t lpf;
+    gyroRateKHz_e gyroRateKHz;
+    uint8_t mpuDividerDrops;
     volatile bool dataReady;
     sensor_align_e gyroAlign;
     mpuDetectionResult_t mpuDetectionResult;

@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "common/maths.h" // for fix12_t
+#include "config/parameter_group.h"
 
 #ifndef VBAT_SCALE_DEFAULT
 #define VBAT_SCALE_DEFAULT 110
@@ -63,6 +63,8 @@ typedef struct batteryConfig_s {
     uint8_t consumptionWarningPercentage;   // Percentage of remaining capacity that should trigger a battery warning
 } batteryConfig_t;
 
+PG_DECLARE(batteryConfig_t, batteryConfig);
+
 typedef enum {
     BATTERY_OK = 0,
     BATTERY_WARNING,
@@ -70,24 +72,23 @@ typedef enum {
     BATTERY_NOT_PRESENT
 } batteryState_e;
 
-extern uint16_t vbat;
 extern uint16_t vbatRaw;
 extern uint16_t vbatLatest;
 extern uint8_t batteryCellCount;
 extern uint16_t batteryWarningVoltage;
-extern uint16_t amperageLatest;
+extern int32_t amperageLatest;
 extern int32_t amperage;
 extern int32_t mAhDrawn;
 
 batteryState_e getBatteryState(void);
 const  char * getBatteryStateString(void);
 void updateBattery(void);
-void batteryInit(batteryConfig_t *initialBatteryConfig);
-batteryConfig_t *batteryConfig;
+void batteryInit(void);
 
 struct rxConfig_s;
-void updateCurrentMeter(int32_t lastUpdateAt, struct rxConfig_s *rxConfig, uint16_t deadband3d_throttle);
+void updateCurrentMeter(int32_t lastUpdateAt);
 int32_t currentMeterToCentiamps(uint16_t src);
 
 float calculateVbatPidCompensation(void);
 uint8_t calculateBatteryPercentage(void);
+uint16_t getVbat(void);

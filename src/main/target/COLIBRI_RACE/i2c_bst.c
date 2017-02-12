@@ -29,7 +29,7 @@
 #include "drivers/rx_pwm.h"
 
 #include "fc/config.h"
-#include "fc/fc_main.h"
+#include "fc/fc_core.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
 
@@ -44,6 +44,8 @@
 
 #include "rx/rx.h"
 #include "rx/msp.h"
+
+#include "scheduler/scheduler.h"
 
 #include "sensors/boardalignment.h"
 #include "sensors/sensors.h"
@@ -74,8 +76,6 @@
 
 #include "bus_bst.h"
 #include "i2c_bst.h"
-
-void useRcControlsConfig(modeActivationCondition_t *modeActivationConditions, motorConfig_t *motorConfigToUse, pidProfile_t *pidProfileToUse);
 
 #define BST_PROTOCOL_VERSION                0
 
@@ -269,7 +269,6 @@ static const char * const boardIdentifier = TARGET_BOARD_IDENTIFIER;
 
 extern volatile uint8_t CRC8;
 extern volatile bool coreProReady;
-extern uint16_t cycleTime; // FIXME dependency on mw.c
 
 // this is calculated at startup based on enabled features.
 static uint8_t activeBoxIds[CHECKBOX_ITEM_COUNT];
@@ -562,7 +561,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
             break;
 
         case BST_STATUS:
-            bstWrite16(cycleTime);
+            bstWrite16(getTaskDeltaTime(TASK_GYROPID));
 #ifdef USE_I2C
             bstWrite16(i2cGetErrorCounter());
 #else
@@ -614,7 +613,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
                     bstWrite16(acc.accSmooth[i] / scale);
                 }
                 for (i = 0; i < 3; i++) {
-                    bstWrite16(lrintf(gyro.gyroADCf[i] /gyro.dev.scale));
+                    bstWrite16(gyroRateDps(i));
                 }
                 for (i = 0; i < 3; i++) {
                     bstWrite16(mag.magADC[i]);
@@ -639,13 +638,13 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
             break;
         case BST_SERVO_MIX_RULES:
             for (i = 0; i < MAX_SERVO_RULES; i++) {
-                bstWrite8(customServoMixer(i)->targetChannel);
-                bstWrite8(customServoMixer(i)->inputSource);
-                bstWrite8(customServoMixer(i)->rate);
-                bstWrite8(customServoMixer(i)->speed);
-                bstWrite8(customServoMixer(i)->min);
-                bstWrite8(customServoMixer(i)->max);
-                bstWrite8(customServoMixer(i)->box);
+                bstWrite8(customServoMixers(i)->targetChannel);
+                bstWrite8(customServoMixers(i)->inputSource);
+                bstWrite8(customServoMixers(i)->rate);
+                bstWrite8(customServoMixers(i)->speed);
+                bstWrite8(customServoMixers(i)->min);
+                bstWrite8(customServoMixers(i)->max);
+                bstWrite8(customServoMixers(i)->box);
             }
             break;
 #endif
@@ -677,7 +676,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
 #endif
             break;
         case BST_ANALOG:
-            bstWrite8((uint8_t)constrain(vbat, 0, 255));
+            bstWrite8((uint8_t)constrain(getVbat(), 0, 255));
             bstWrite16((uint16_t)constrain(mAhDrawn, 0, 0xFFFF)); // milliamp hours drawn from battery
             bstWrite16(rssi);
             if(batteryConfig()->multiwiiCurrentMeterOutput) {
@@ -691,7 +690,7 @@ static bool bstSlaveProcessFeedbackCommand(uint8_t bstRequest)
             break;
         case BST_LOOP_TIME:
             //bstWrite16(masterConfig.looptime);
-            bstWrite16(cycleTime);
+            bstWrite16(getTaskDeltaTime(TASK_GYROPID));
             break;
         case BST_RC_TUNING:
             bstWrite8(currentControlRateProfile->rcRate8);
@@ -1043,7 +1042,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
             break;
         case BST_SET_LOOP_TIME:
             //masterConfig.looptime = bstRead16();
-            cycleTime = bstRead16();
+            bstRead16();
             break;
         case BST_SET_PID_CONTROLLER:
             break;
@@ -1066,7 +1065,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
                     mac->range.startStep = bstRead8();
                     mac->range.endStep = bstRead8();
 
-                    useRcControlsConfig(modeActivationProfile()->modeActivationConditions, &masterConfig.motorConfig, &currentProfile->pidProfile);
+                    useRcControlsConfig(modeActivationProfile()->modeActivationConditions, &currentProfile->pidProfile);
                 } else {
                     ret = BST_FAILED;
                 }
@@ -1178,13 +1177,13 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
            if (i >= MAX_SERVO_RULES) {
                ret = BST_FAILED;
            } else {
-               customServoMixer(i)->targetChannel = bstRead8();
-               customServoMixer(i)->inputSource = bstRead8();
-               customServoMixer(i)->rate = bstRead8();
-               customServoMixer(i)->speed = bstRead8();
-               customServoMixer(i)->min = bstRead8();
-               customServoMixer(i)->max = bstRead8();
-               customServoMixer(i)->box = bstRead8();
+               customServoMixers(i)->targetChannel = bstRead8();
+               customServoMixers(i)->inputSource = bstRead8();
+               customServoMixers(i)->rate = bstRead8();
+               customServoMixers(i)->speed = bstRead8();
+               customServoMixers(i)->min = bstRead8();
+               customServoMixers(i)->max = bstRead8();
+               customServoMixers(i)->box = bstRead8();
                loadCustomServoMixer();
            }
 #endif
@@ -1266,7 +1265,7 @@ static bool bstSlaveProcessWriteCommand(uint8_t bstWriteCommand)
             } else {
                 serialConfig()->portConfigs[SERIALRX_UART].functionMask = FUNCTION_NONE;
             }
-#endif            
+#endif
             break;
         case BST_SET_BOARD_ALIGNMENT:
             boardAlignment()->rollDegrees = bstRead16();
