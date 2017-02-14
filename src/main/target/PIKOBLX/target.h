@@ -116,8 +116,12 @@
 #endif
 
 #define SPEKTRUM_BIND
-// USART3, PB11
-#define BIND_PIN                PB11
+
+#if defined(RADIENCE)
+#define BIND_PIN                UART2_RX_PIN
+#else
+#define BIND_PIN                UART3_RX_PIN
+#endif
 
 #if !defined(BRUSHED_MOTORS)
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
