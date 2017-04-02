@@ -17,20 +17,35 @@
 
 #pragma once
 
+#if defined(PIKOV2)
+#define TARGET_BOARD_IDENTIFIER "PIV2"
+#define USBD_PRODUCT_STRING     "PikoV2"
+#else
 #define TARGET_BOARD_IDENTIFIER "FORT"
-#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
-
 #define USBD_PRODUCT_STRING     "Fortini"
+#endif
+
+#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
 
 #define TARGET_CONFIG
 
+#if defined(PIKOV2)
+#define LED0                    PA15
+#else
 #define LED0                    PB5
+#endif
 #define LED1                    PB6
 
+#if defined(PIKOV2)
+#define BEEPER					PA14
+#else
 #define BEEPER                  PB4
+#endif
 #define BEEPER_INVERTED
 
+#if defined(FORTINI)
 #define INVERTER_PIN_USART3     PC15
+#endif
 
 #define ICM20689_CS_PIN          PA8
 #define ICM20689_SPI_INSTANCE    SPI1
@@ -73,7 +88,11 @@
 #define USE_SPI
 
 #define USE_SPI_DEVICE_1
+#if defined(PIKOV2)
+#define SPI1_NSS_PIN            PA4
+#else
 #define SPI1_NSS_PIN            PA8
+#endif
 #define SPI1_SCK_PIN            PA5
 #define SPI1_MISO_PIN           PA6
 #define SPI1_MOSI_PIN           PA7
@@ -87,7 +106,9 @@
 #define USE_ADC
 #define BOARD_HAS_VOLTAGE_DIVIDER
 #define VBAT_ADC_PIN            PC2
+#if defined(FORTINI)
 #define CURRENT_METER_ADC_PIN   PC1
+#endif
 
 #define DEFAULT_FEATURES        (FEATURE_VBAT | FEATURE_BLACKBOX)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
