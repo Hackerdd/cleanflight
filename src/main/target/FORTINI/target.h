@@ -47,7 +47,11 @@
 #define INVERTER_PIN_USART3     PC15
 #endif
 
+#if defined(PIKOV2)
+#define ICM20689_CS_PIN          PA4
+#else
 #define ICM20689_CS_PIN          PA8
+#endif
 #define ICM20689_SPI_INSTANCE    SPI1
 
 #define GYRO
